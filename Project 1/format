@@ -1,0 +1,4 @@
+export GOROOT=/n/Software/go
+export PATH=$PATH:$GOROOT/bin
+
+go fmt main.go
