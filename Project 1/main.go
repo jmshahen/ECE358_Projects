@@ -11,17 +11,17 @@ import (
 
 // Input Variables
 var (
-	M      int64 //number of times to repeat the tests (avg)
-	TICKS  int64 //
-	lambda int64
-	L      int64
-	C      int64
-	K      int64
+	M      int //number of times to repeat the tests (avg)
+	TICKS  int //
+	lambda int //
+	L      int //
+	C      int //
+	K      int //
 )
 
 var logger *log.Logger
 
-func get_int(r *bufio.Reader) (int64, error) {
+func get_int(r *bufio.Reader) (int) {
 	var val, err = r.ReadString('\n')
 	if err != nil {
 		fmt.Println("| err:", err)
@@ -32,11 +32,14 @@ func get_int(r *bufio.Reader) (int64, error) {
 	var trimval = strings.TrimRight(val, "\n")
 	logger.Println("trimmed =", trimval)
 	// valI, errI := strconv.ParseInt(trimval, 10, 32)
-	var b int64
+	var b int
 	_, errI := fmt.Sscan(trimval, &b)
-	logger.Printf("converted = %d\n%v\n", b, errI)
+	if errI != nil {
+		logger.Printf("converted = %d\n%v\n", b, errI)
+		os.Exit(1)
+	}
 
-	return b, errI
+	return b
 }
 
 func main() {
@@ -53,22 +56,22 @@ func main() {
 	// Get Variables
 	var stdinR = bufio.NewReader(os.Stdin)
 	fmt.Printf("M: ")
-	M, _ = get_int(stdinR)
+	M = get_int(stdinR)
 
 	fmt.Printf("TICKS: ")
-	TICKS, _ = get_int(stdinR)
+	TICKS = get_int(stdinR)
 
 	fmt.Printf("lambda: ")
-	lambda, _ = get_int(stdinR)
+	lambda = get_int(stdinR)
 
 	fmt.Printf("L: ")
-	L, _ = get_int(stdinR)
+	L = get_int(stdinR)
 
 	fmt.Printf("C: ")
-	C, _ = get_int(stdinR)
+	C = get_int(stdinR)
 
 	fmt.Printf("K (zero = infinity): ")
-	K, _ = get_int(stdinR)
+	K = get_int(stdinR)
 	// End of Get Variables
 
 	// Display Variables
@@ -84,4 +87,13 @@ func main() {
 		fmt.Println("\t K     ",K)
 	}
 	//End of display Variables
+
+	// Loop for average statistics
+	for m := 1; m <= M; m++ {
+		for t := 1; t < TICKS; t++ {
+			consumer(t)
+			producer(t)
+
+		}
+	}
 }
