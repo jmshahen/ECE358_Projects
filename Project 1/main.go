@@ -5,23 +5,26 @@ import (
 	"fmt"
 	"os"
 	// "strconv"
+	"consumer"
 	"log"
+	"producer"
 	"strings"
+	"time"
 )
 
 // Input Variables
 var (
-	M      int //number of times to repeat the tests (avg)
-	TICKS  int //
-	lambda int //
-	L      int //
-	C      int //
-	K      int //
+	M      int // number of times to repeat the tests (avg)
+	TICKS  int // length of the test
+	lambda int // Average number of packets generated /arrived (packets per second)
+	L      int // Length of a packet in bits
+	C      int // The service time received by a packet. (Example: The transmission rate of the output link in bits per second.)
+	K      int // The buffer size, 0 for infinite size
 )
 
 var logger *log.Logger
 
-func get_int(r *bufio.Reader) (int) {
+func get_int(r *bufio.Reader) int {
 	var val, err = r.ReadString('\n')
 	if err != nil {
 		fmt.Println("| err:", err)
@@ -44,10 +47,10 @@ func get_int(r *bufio.Reader) (int) {
 
 func main() {
 	//Header
-	fmt.Println("ECE 358 Project 1 - Written in GO")
+	fmt.Println("ECE 358 Project 1 - Written in GO (golang.org)")
 	fmt.Println("Submitted by:")
-	fmt.Println("\tJon Shahen \t(20334465)")
-	fmt.Println("\tKevin Carlton \t(203)")
+	fmt.Println("\tJon Shahen    \t(20334465)")
+	fmt.Println("\tKevin Carlton \t(20337152)")
 	fmt.Println("---\n")
 	// End of Header
 
@@ -84,16 +87,22 @@ func main() {
 	if K == 0 {
 		fmt.Println("\t K      Infinity")
 	} else {
-		fmt.Println("\t K     ",K)
+		fmt.Println("\t K     ", K)
 	}
 	//End of display Variables
 
 	// Loop for average statistics
+	var test_t time.Time
 	for m := 1; m <= M; m++ {
-		for t := 1; t < TICKS; t++ {
-			consumer(t)
-			producer(t)
+		test_t = time.Now()
 
+		consumer.Init(logger)
+		producer.Init(logger)
+
+		for t := 1; t < TICKS; t++ {
+			consumer.Tick(t)
+			producer.Tick(t)
 		}
+		logger.Println("[Info] Finished running Test #", m, "elapsed time:", time.Since(test_t))
 	}
 }
