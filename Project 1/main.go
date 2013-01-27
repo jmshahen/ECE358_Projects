@@ -14,15 +14,18 @@ import (
 
 // Input Variables
 var (
-	M      int // number of times to repeat the tests (avg)
-	TICKS  int // length of the test
-	lambda int // Average number of packets generated /arrived (packets per second)
-	L      int // Length of a packet in bits
-	C      int // The service time received by a packet. (Example: The transmission rate of the output link in bits per second.)
-	K      int // The buffer size, 0 for infinite size
+	M         int     // number of times to repeat the tests (avg)
+	TICKS     int     // length of the test
+	TICK_time int     // 1 TICK = X milliseconds
+	lambda    int     // Average number of packets generated /arrived (packets per second)
+	L         int     // Length of a packet in bits
+	C         float32 // The service time received by a packet. (Example: The transmission rate of the output link in bits per second.)
+	K         int     // The buffer size, 0 for infinite size
 )
 
 var logger *log.Logger
+
+var get_int_debug = false
 
 func get_int(r *bufio.Reader) int {
 	var val, err = r.ReadString('\n')
@@ -31,9 +34,13 @@ func get_int(r *bufio.Reader) int {
 		os.Exit(1)
 	}
 
-	logger.Println("Val =", val)
+	if get_int_debug {
+		logger.Println("Val =", val)
+	}
 	var trimval = strings.TrimRight(val, "\n")
-	logger.Println("trimmed =", trimval)
+	if get_int_debug {
+		logger.Println("trimmed =", trimval)
+	}
 	// valI, errI := strconv.ParseInt(trimval, 10, 32)
 	var b int
 	_, errI := fmt.Sscan(trimval, &b)
@@ -64,14 +71,17 @@ func main() {
 	fmt.Printf("TICKS: ")
 	TICKS = get_int(stdinR)
 
+	fmt.Printf("TICK Time (1 TICK = X milliseconds): ")
+	TICK_time = get_int(stdinR)
+
 	fmt.Printf("lambda: ")
 	lambda = get_int(stdinR)
 
-	fmt.Printf("L: ")
+	fmt.Printf("L (bits): ")
 	L = get_int(stdinR)
 
-	fmt.Printf("C: ")
-	C = get_int(stdinR)
+	fmt.Printf("C (bits per sec): ")
+	C = float32(get_int(stdinR))
 
 	fmt.Printf("K (zero = infinity): ")
 	K = get_int(stdinR)
@@ -82,8 +92,8 @@ func main() {
 	fmt.Println("\t M     ", M)
 	fmt.Println("\t TICKS ", TICKS)
 	fmt.Println("\t lambda", lambda)
-	fmt.Println("\t L     ", L)
-	fmt.Println("\t C     ", C)
+	fmt.Println("\t L     ", L, "bits")
+	fmt.Println("\t C     ", C, "bits/sec")
 	if K == 0 {
 		fmt.Println("\t K      Infinity")
 	} else {
@@ -96,12 +106,12 @@ func main() {
 	for m := 1; m <= M; m++ {
 		test_t = time.Now()
 
-		consumer.Init(logger)
+		consumer.Init(logger, L, C)
 		producer.Init(logger)
 
 		for t := 1; t < TICKS; t++ {
-			consumer.Tick(t)
 			producer.Tick(t)
+			consumer.Tick(t)
 		}
 		logger.Println("[Info] Finished running Test #", m, "elapsed time:", time.Since(test_t))
 	}
