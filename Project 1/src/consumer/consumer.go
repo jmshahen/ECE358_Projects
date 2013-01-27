@@ -2,31 +2,34 @@ package consumer
 
 import (
 	"log"
-	"time"
 )
 
 var logger *log.Logger
 var (
-	packet_len        int     // packet length in bits
-	transmission_rate float32 // bits per second
-	wait_time         int     // in milliseconds
+	next_tick      int = 1
+	wait_time_tick int // in milliseconds
+	queue          QueueMgr
 )
 
-func Init(l *log.Logger, _packet_len int, _transmission_rate float32) {
+func Init(l *log.Logger, wait_tick int) *QueueMgr {
 	logger = l
 	logger.Println("[Consumer] Started")
-	packet_len = _packet_len
-	transmission_rate = _transmission_rate
 
-	wait_time = int((float32(packet_len) / transmission_rate) * 1000) // in milliseconds
-	logger.Println("[Consumer] Service time is", wait_time, "milliseconds")
+	wait_time_tick = wait_tick
+
+	logger.Println("[Consumer] Service time is", wait_time_tick, "ticks")
+
+	return &queue
 }
 
 func Tick(t int) {
-
+	if next_tick == t {
+		consume_packet()
+		next_tick = t + wait_time_tick
+	}
 }
 
 func consume_packet() {
-	logger.Println("[Consumer] Consuming Packet for", wait_time, "milliseconds")
-	time.Sleep(time.Duration(wait_time) * time.Millisecond)
+	logger.Println("[Consumer] Consuming Packet for", wait_time_tick, "ticks")
+	queue.Pop()
 }

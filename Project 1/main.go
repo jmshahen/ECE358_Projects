@@ -7,6 +7,7 @@ import (
 	// "strconv"
 	"consumer"
 	"log"
+	"math"
 	"producer"
 	"strings"
 	"time"
@@ -17,9 +18,9 @@ var (
 	M         int     // number of times to repeat the tests (avg)
 	TICKS     int     // length of the test
 	TICK_time int     // 1 TICK = X milliseconds
-	lambda    int     // Average number of packets generated /arrived (packets per second)
+	lambda    float64 // Average number of packets generated /arrived (packets per second)
 	L         int     // Length of a packet in bits
-	C         float32 // The service time received by a packet. (Example: The transmission rate of the output link in bits per second.)
+	C         float64 // The service time received by a packet. (Example: The transmission rate of the output link in bits per second.)
 	K         int     // The buffer size, 0 for infinite size
 )
 
@@ -27,7 +28,7 @@ var logger *log.Logger
 
 var get_int_debug = false
 
-func get_int(r *bufio.Reader) int {
+func get_val(r *bufio.Reader) string {
 	var val, err = r.ReadString('\n')
 	if err != nil {
 		fmt.Println("| err:", err)
@@ -41,15 +42,28 @@ func get_int(r *bufio.Reader) int {
 	if get_int_debug {
 		logger.Println("trimmed =", trimval)
 	}
+
+	return trimval
+}
+
+func get_int(r *bufio.Reader, b *int) {
+	var trimval = get_val(r)
 	// valI, errI := strconv.ParseInt(trimval, 10, 32)
-	var b int
-	_, errI := fmt.Sscan(trimval, &b)
+	_, errI := fmt.Sscan(trimval, b)
 	if errI != nil {
 		logger.Printf("converted = %d\n%v\n", b, errI)
 		os.Exit(1)
 	}
+}
 
-	return b
+func get_float64(r *bufio.Reader, b *float64) {
+	var trimval = get_val(r)
+	// valI, errI := strconv.ParseInt(trimval, 10, 32)
+	_, errI := fmt.Sscan(trimval, b)
+	if errI != nil {
+		logger.Printf("converted = %f\n%v\n", b, errI)
+		os.Exit(1)
+	}
 }
 
 func main() {
@@ -66,38 +80,39 @@ func main() {
 	// Get Variables
 	var stdinR = bufio.NewReader(os.Stdin)
 	fmt.Printf("M: ")
-	M = get_int(stdinR)
+	get_int(stdinR, &M)
 
 	fmt.Printf("TICKS: ")
-	TICKS = get_int(stdinR)
+	get_int(stdinR, &TICKS)
 
 	fmt.Printf("TICK Time (1 TICK = X milliseconds): ")
-	TICK_time = get_int(stdinR)
+	get_int(stdinR, &TICK_time)
 
 	fmt.Printf("lambda: ")
-	lambda = get_int(stdinR)
+	get_float64(stdinR, &lambda)
 
 	fmt.Printf("L (bits): ")
-	L = get_int(stdinR)
+	get_int(stdinR, &L)
 
 	fmt.Printf("C (bits per sec): ")
-	C = float32(get_int(stdinR))
+	get_float64(stdinR, &C)
 
 	fmt.Printf("K (zero = infinity): ")
-	K = get_int(stdinR)
+	get_int(stdinR, &K)
 	// End of Get Variables
 
 	// Display Variables
 	fmt.Println("Variables being used:")
-	fmt.Println("\t M     ", M)
-	fmt.Println("\t TICKS ", TICKS)
-	fmt.Println("\t lambda", lambda)
-	fmt.Println("\t L     ", L, "bits")
-	fmt.Println("\t C     ", C, "bits/sec")
+	fmt.Println("\t M          ", M)
+	fmt.Println("\t TICKS      ", TICKS)
+	fmt.Println("\t TICK_time  ", TICK_time, "milliseconds")
+	fmt.Println("\t lambda     ", lambda)
+	fmt.Println("\t L          ", L, "bits")
+	fmt.Println("\t C          ", C, "bits/sec")
 	if K == 0 {
-		fmt.Println("\t K      Infinity")
+		fmt.Println("\t K          ", "Infinity")
 	} else {
-		fmt.Println("\t K     ", K)
+		fmt.Println("\t K          ", K)
 	}
 	//End of display Variables
 
@@ -106,8 +121,9 @@ func main() {
 	for m := 1; m <= M; m++ {
 		test_t = time.Now()
 
-		consumer.Init(logger, L, C)
-		producer.Init(logger)
+		var wait_tick = get_tick_wait()
+		var qm = consumer.Init(logger, wait_tick)
+		producer.Init(logger, qm, lambda)
 
 		for t := 1; t < TICKS; t++ {
 			producer.Tick(t)
@@ -115,4 +131,8 @@ func main() {
 		}
 		logger.Println("[Info] Finished running Test #", m, "elapsed time:", time.Since(test_t))
 	}
+}
+
+func get_tick_wait() int {
+	return int(math.Ceil(((float64(L) / C) * 1000) / float64(TICK_time)))
 }
