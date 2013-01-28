@@ -30,6 +30,6 @@ func Tick(t int) {
 }
 
 func consume_packet() {
-	logger.Println("[Consumer] Consuming Packet for", wait_time_tick, "ticks")
+	//logger.Println("[Consumer] Consuming Packet for", wait_time_tick, "ticks")
 	queue.Pop()
 }

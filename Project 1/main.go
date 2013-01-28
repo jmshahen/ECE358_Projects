@@ -75,7 +75,7 @@ func main() {
 	fmt.Println("---\n")
 	// End of Header
 
-	logger = log.New(os.Stdout, "[ECE358 P1]", log.LstdFlags)
+	logger = log.New(os.Stdout, "[ECE358 P1] ", log.LstdFlags)
 
 	// Get Variables
 	var stdinR = bufio.NewReader(os.Stdin)
@@ -102,7 +102,7 @@ func main() {
 	// End of Get Variables
 
 	// Display Variables
-	fmt.Println("Variables being used:")
+	fmt.Println("\nVariables being used:")
 	fmt.Println("\t M          ", M)
 	fmt.Println("\t TICKS      ", TICKS)
 	fmt.Println("\t TICK_time  ", TICK_time, "milliseconds")
@@ -123,13 +123,14 @@ func main() {
 
 		var wait_tick = get_tick_wait()
 		var qm = consumer.Init(logger, wait_tick)
-		producer.Init(logger, qm, lambda)
+		producer.Init(logger, qm, lambda, TICK_time)
 
 		for t := 1; t < TICKS; t++ {
 			producer.Tick(t)
 			consumer.Tick(t)
 		}
 		logger.Println("[Info] Finished running Test #", m, "elapsed time:", time.Since(test_t))
+		logger.Println("[Info] Queue Size", qm.Size)
 	}
 }
 
