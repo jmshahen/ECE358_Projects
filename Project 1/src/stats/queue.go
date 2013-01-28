@@ -1,4 +1,4 @@
-package consumer
+package stats
 
 import (
 	// "log"
@@ -29,8 +29,12 @@ func (qm *QueueMgr) Push(item interface{}) error {
 		qm.Tail = &qItem
 		qm.Size++
 	} else {
+		//add one to the packet loss
+		Probability_loss.AddOne()
 		return fmt.Errorf("Queue is full, max size %d packets", qm.MaxSize)
 	}
+	//successfully put packet in queue
+	Probability_loss.Total++
 	return nil
 }
 

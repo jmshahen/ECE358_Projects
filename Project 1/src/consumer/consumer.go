@@ -2,16 +2,17 @@ package consumer
 
 import (
 	"log"
+	"stats"
 )
 
 var logger *log.Logger
 var (
 	next_tick      int = 1
 	wait_time_tick int // in milliseconds
-	queue          QueueMgr
+	queue          stats.QueueMgr
 )
 
-func Init(l *log.Logger, wait_tick int) *QueueMgr {
+func Init(l *log.Logger, wait_tick int) *stats.QueueMgr {
 	logger = l
 	logger.Println("[Consumer] Started")
 

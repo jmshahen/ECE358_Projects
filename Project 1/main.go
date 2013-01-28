@@ -7,11 +7,11 @@ import (
 	"encoding/csv"
 	"io"
 	"os"
-	// "strconv"
 	"consumer"
 	"log"
 	"math"
 	"producer"
+	"stats"
 	"time"
 )
 
@@ -199,16 +199,27 @@ func main() {
 	for m := 1; m <= M; m++ {
 		test_t = time.Now()
 
+		logger.Println("\n\n-------")
+
 		var wait_tick = get_tick_wait()
 		var qm = consumer.Init(logger, wait_tick)
+		qm.MaxSize = K
 		producer.Init(logger, qm, lambda, TICK_time)
+		stats.Init(logger)
+
+		logger.Println("---")
 
 		for t := 1; t < TICKS; t++ {
 			producer.Tick(t)
 			consumer.Tick(t)
+
+			// Getting the average packets in the queue
+			stats.Avg_packets.AddAvg(float64(qm.Size))
 		}
 		logger.Println("[Info] Finished running Test #", m, "elapsed time:", time.Since(test_t))
 		logger.Println("[Info] Queue Size", qm.Size)
+		logger.Println("[Stats] Average Packets in Queue (E[N]) =", stats.Avg_packets.GetAvg())
+		logger.Println("[Stats] Probability Packet Loss (P_LOSS) =", stats.Probability_loss.GetProportion())
 	}
 }
 
