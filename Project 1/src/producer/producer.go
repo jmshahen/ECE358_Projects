@@ -1,7 +1,7 @@
 package producer
 
 import (
-	"consumer"
+	"stats"
 	"log"
 	"math"
 	"math/rand"
@@ -12,11 +12,11 @@ var (
 	logger      *log.Logger
 	nextTick    int = 1
 	lambda      float64
-	qm          *consumer.QueueMgr
+	qm          *stats.QueueMgr
 	time_2_tick int //1 tick = X milliseconds
 )
 
-func Init(l *log.Logger, _qm *consumer.QueueMgr, _lambda float64, TICK_time int) {
+func Init(l *log.Logger, _qm *stats.QueueMgr, _lambda float64, TICK_time int) {
 	logger = l
 	lambda = _lambda
 	qm = _qm
@@ -50,7 +50,7 @@ func getExpRandNum(l float64) int {
 }
 
 func producePacket(i interface{}) {
-	var qi = consumer.QueueItem{nil, i}
+	var qi = stats.QueueItem{nil, i}
 	if err := qm.Push(qi); err != nil {
 		logger.Printf("[Producer] Received Error %v\n", err)
 	}

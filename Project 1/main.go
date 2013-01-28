@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	// "strconv"
+	"stats"
 	"consumer"
 	"log"
 	"math"
@@ -124,6 +124,8 @@ func main() {
 		var wait_tick = get_tick_wait()
 		var qm = consumer.Init(logger, wait_tick)
 		producer.Init(logger, qm, lambda, TICK_time)
+
+		stats.Init(logger, qm)
 
 		for t := 1; t < TICKS; t++ {
 			producer.Tick(t)
