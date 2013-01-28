@@ -1,10 +1,10 @@
 package producer
 
 import (
-	"stats"
 	"log"
 	"math"
 	"math/rand"
+	"stats"
 	"time"
 )
 
@@ -31,7 +31,7 @@ func Tick(t int) {
 	if t == nextTick {
 		producePacket(t)
 		nextTick = t + getExpRandNum(lambda)
-		logger.Println("[Producer] Next Packet at", nextTick)
+		//logger.Println("[Producer] Next Packet at", nextTick)
 	}
 }
 

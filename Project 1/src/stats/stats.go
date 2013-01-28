@@ -15,25 +15,31 @@ type Pro struct {
 }
 
 var (
-	queue  *QueueMgr
 	logger *log.Logger
 	// Stats
-	avg_packets      Avg // E[N]
-	avg_sojourn      Avg // E[T]
-	proportion_idle  Pro // P_IDLE
-	probability_loss Pro // P_LOSS
+	Avg_packets      Avg // E[N]
+	Avg_sojourn      Avg // E[T]
+	Proportion_idle  Pro // P_IDLE
+	Probability_loss Pro // P_LOSS
 )
 
-func Init(l *log.Logger, qm *QueueMgr) {
+func Init(l *log.Logger) {
 	logger = l
-	queue = qm
+	logger.Println("[Stats] Started")
 }
+
+// Helper functions
 
 func (a Avg) GetAvg() float64 {
 	if a.Num == 0 {
 		return 0
 	}
 	return a.Total / float64(a.Num)
+}
+
+func (a *Avg) AddAvg(add float64) {
+	a.Total += add
+	a.Num++
 }
 
 func (p Pro) GetProportion() float64 {
