@@ -48,3 +48,8 @@ func (p Pro) GetProportion() float64 {
 	}
 	return float64(p.Less) / float64(p.Total)
 }
+
+func (p *Pro) AddOne() {
+	p.Total++
+	p.Less++
+}
