@@ -2,14 +2,16 @@ package main
 
 import (
 	"bufio"
+	"strings"
 	"fmt"
+	"encoding/csv"
+	"io"
 	"os"
 	// "strconv"
 	"consumer"
 	"log"
 	"math"
 	"producer"
-	"strings"
 	"time"
 )
 
@@ -28,6 +30,22 @@ var logger *log.Logger
 
 var get_int_debug = false
 
+
+func get_int_csv(r string, b *int) {
+    _, errI := fmt.Sscan(r, b)
+    if errI != nil {
+        fmt.Printf("converted = %d\n%v\n", b, errI)
+        os.Exit(1)
+    }
+}
+
+func get_float64_csv(r string, b *float64) {
+    _, errI := fmt.Sscan(r, b)
+    if errI != nil {
+        fmt.Printf("converted = %f\n%v\n", b, errI)
+        os.Exit(1)
+    }
+}
 func get_val(r *bufio.Reader) string {
 	var val, err = r.ReadString('\n')
 	if err != nil {
@@ -66,6 +84,7 @@ func get_float64(r *bufio.Reader, b *float64) {
 	}
 }
 
+
 func main() {
 	//Header
 	fmt.Println("ECE 358 Project 1 - Written in GO (golang.org)")
@@ -77,43 +96,102 @@ func main() {
 
 	logger = log.New(os.Stdout, "[ECE358 P1] ", log.LstdFlags)
 
-	// Get Variables
-	var stdinR = bufio.NewReader(os.Stdin)
-	fmt.Printf("M: ")
-	get_int(stdinR, &M)
+	if len(os.Args) == 2 {
+		file, err := os.Open(os.Args[1])
+	    if err != nil {
+	        fmt.Println("Error:", err)
+	        return
+	    }
+	    defer file.Close()
+		reader := csv.NewReader(file)
 
-	fmt.Printf("TICKS: ")
-	get_int(stdinR, &TICKS)
+	    rec, err := reader.Read()
+	    if err == io.EOF {
+	        fmt.Println("Error: No Headers")
+	    } else if err != nil {
+	        fmt.Println("Error:", err)
+	        return
+	    }
+	    // throwaway header
 
-	fmt.Printf("TICK Time (1 TICK = X milliseconds): ")
-	get_int(stdinR, &TICK_time)
+	    rec, err = reader.Read()
+	    if err == io.EOF {
+	        fmt.Println("Error: No Data")
+	    } else if err != nil {
+	        fmt.Println("Error:", err)
+	        return
+	    }
 
-	fmt.Printf("lambda: ")
-	get_float64(stdinR, &lambda)
+	    fmt.Printf("M: ")
+	    get_int_csv(rec[0], &M)
+	    fmt.Println(M)
 
-	fmt.Printf("L (bits): ")
-	get_int(stdinR, &L)
+	    fmt.Printf("TICKS: ")
+	    get_int_csv(rec[1], &TICKS)
+	    fmt.Println(TICKS)
 
-	fmt.Printf("C (bits per sec): ")
-	get_float64(stdinR, &C)
+	    fmt.Printf("TICK Time (1 TICK = X milliseconds): ")
+	    get_int_csv(rec[2], &TICK_time)
+	    fmt.Println(TICK_time)
 
-	fmt.Printf("K (zero = infinity): ")
-	get_int(stdinR, &K)
-	// End of Get Variables
+	    fmt.Printf("lambda: ")
+	    get_float64_csv(rec[3], &lambda)
+	    fmt.Println(lambda)
 
-	// Display Variables
-	fmt.Println("\nVariables being used:")
-	fmt.Println("\t M          ", M)
-	fmt.Println("\t TICKS      ", TICKS)
-	fmt.Println("\t TICK_time  ", TICK_time, "milliseconds")
-	fmt.Println("\t lambda     ", lambda)
-	fmt.Println("\t L          ", L, "bits")
-	fmt.Println("\t C          ", C, "bits/sec")
-	if K == 0 {
-		fmt.Println("\t K          ", "Infinity")
+	    fmt.Printf("L (bits): ")
+	    get_int_csv(rec[4], &L)
+	    fmt.Println(L)
+
+	    fmt.Printf("C (bits per sec): ")
+	    get_float64_csv(rec[5], &C)
+	    fmt.Println(C)
+
+	    fmt.Printf("K (zero = infinity): ")
+	    get_int_csv(rec[6], &K)
+	    fmt.Println(K)
+
 	} else {
-		fmt.Println("\t K          ", K)
+		// Get Variables
+		var stdinR = bufio.NewReader(os.Stdin)
+		fmt.Printf("M: ")
+		get_int(stdinR, &M)
+
+		fmt.Printf("TICKS: ")
+		get_int(stdinR, &TICKS)
+
+		fmt.Printf("TICK Time (1 TICK = X milliseconds): ")
+		get_int(stdinR, &TICK_time)
+
+		fmt.Printf("lambda: ")
+		get_float64(stdinR, &lambda)
+
+		fmt.Printf("L (bits): ")
+		get_int(stdinR, &L)
+
+		fmt.Printf("C (bits per sec): ")
+		get_float64(stdinR, &C)
+
+		fmt.Printf("K (zero = infinity): ")
+		get_int(stdinR, &K)
+		// End of Get Variables
+
+		// Display Variables
+		fmt.Println("\nVariables being used:")
+		fmt.Println("\t M          ", M)
+		fmt.Println("\t TICKS      ", TICKS)
+		fmt.Println("\t TICK_time  ", TICK_time, "milliseconds")
+		fmt.Println("\t lambda     ", lambda)
+		fmt.Println("\t L          ", L, "bits")
+		fmt.Println("\t C          ", C, "bits/sec")
+		if K == 0 {
+			fmt.Println("\t K          ", "Infinity")
+		} else {
+			fmt.Println("\t K          ", K)
+		}
 	}
+
+	// Get Variables
+	
 	//End of display Variables
 
 	// Loop for average statistics
