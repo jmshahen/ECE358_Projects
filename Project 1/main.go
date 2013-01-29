@@ -135,10 +135,10 @@ func main() {
 		}
 		logger.Println("[Info] Finished running Test #", m, "elapsed time:", time.Since(test_t))
 		logger.Println("[Info] Queue Size", qm.Size)
-		logger.Println("[Stats] Average Packets in Queue (E[N]) =", stats.Avg_packets.GetAvg())
-		logger.Println("[Stats] Average Sojourn Time (E[T]) =", stats.Avg_sojourn.GetAvg())
-		logger.Println("[Stats] Probability Packet Loss (P_LOSS) =", stats.Probability_loss.GetProportion())
-		logger.Println("[Stats] Proportion Server Idle (P_IDLE) =", stats.Proportion_idle.GetProportion())
+		fmt.Println("[Stats] Average Packets in Queue (E[N])  =\t", stats.Avg_packets.GetAvg())
+		fmt.Println("[Stats] Average Sojourn Time (E[T])      =\t", stats.Avg_sojourn.GetAvg())
+		fmt.Println("[Stats] Probability Packet Loss (P_LOSS) =\t", stats.Probability_loss.GetProportion())
+		fmt.Println("[Stats] Proportion Server Idle (P_IDLE)  =\t", stats.Proportion_idle.GetProportion())
 	}
 }
 
