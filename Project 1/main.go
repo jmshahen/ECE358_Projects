@@ -2,16 +2,16 @@ package main
 
 import (
 	"bufio"
-	"strings"
-	"fmt"
-	"encoding/csv"
-	"io"
-	"os"
 	"consumer"
+	"encoding/csv"
+	"fmt"
+	"io"
 	"log"
 	"math"
+	"os"
 	"producer"
 	"stats"
+	"strings"
 	"time"
 )
 
@@ -30,21 +30,20 @@ var logger *log.Logger
 
 var get_int_debug = false
 
-
 func get_int_csv(r string, b *int) {
-    _, errI := fmt.Sscan(r, b)
-    if errI != nil {
-        fmt.Printf("converted = %d\n%v\n", b, errI)
-        os.Exit(1)
-    }
+	_, errI := fmt.Sscan(r, b)
+	if errI != nil {
+		fmt.Printf("converted = %d\n%v\n", b, errI)
+		os.Exit(1)
+	}
 }
 
 func get_float64_csv(r string, b *float64) {
-    _, errI := fmt.Sscan(r, b)
-    if errI != nil {
-        fmt.Printf("converted = %f\n%v\n", b, errI)
-        os.Exit(1)
-    }
+	_, errI := fmt.Sscan(r, b)
+	if errI != nil {
+		fmt.Printf("converted = %f\n%v\n", b, errI)
+		os.Exit(1)
+	}
 }
 func get_val(r *bufio.Reader) string {
 	var val, err = r.ReadString('\n')
@@ -84,7 +83,6 @@ func get_float64(r *bufio.Reader, b *float64) {
 	}
 }
 
-
 func main() {
 	//Header
 	fmt.Println("ECE 358 Project 1 - Written in GO (golang.org)")
@@ -98,57 +96,57 @@ func main() {
 
 	if len(os.Args) == 2 {
 		file, err := os.Open(os.Args[1])
-	    if err != nil {
-	        fmt.Println("Error:", err)
-	        return
-	    }
-	    defer file.Close()
+		if err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
+		defer file.Close()
 		reader := csv.NewReader(file)
 
-	    rec, err := reader.Read()
-	    if err == io.EOF {
-	        fmt.Println("Error: No Headers")
-	    } else if err != nil {
-	        fmt.Println("Error:", err)
-	        return
-	    }
-	    // throwaway header
+		rec, err := reader.Read()
+		if err == io.EOF {
+			fmt.Println("Error: No Headers")
+		} else if err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
+		// throwaway header
 
-	    rec, err = reader.Read()
-	    if err == io.EOF {
-	        fmt.Println("Error: No Data")
-	    } else if err != nil {
-	        fmt.Println("Error:", err)
-	        return
-	    }
+		rec, err = reader.Read()
+		if err == io.EOF {
+			fmt.Println("Error: No Data")
+		} else if err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
 
-	    fmt.Printf("M: ")
-	    get_int_csv(rec[0], &M)
-	    fmt.Println(M)
+		fmt.Printf("M: ")
+		get_int_csv(rec[0], &M)
+		fmt.Println(M)
 
-	    fmt.Printf("TICKS: ")
-	    get_int_csv(rec[1], &TICKS)
-	    fmt.Println(TICKS)
+		fmt.Printf("TICKS: ")
+		get_int_csv(rec[1], &TICKS)
+		fmt.Println(TICKS)
 
-	    fmt.Printf("TICK Time (1 TICK = X milliseconds): ")
-	    get_int_csv(rec[2], &TICK_time)
-	    fmt.Println(TICK_time)
+		fmt.Printf("TICK Time (1 TICK = X milliseconds): ")
+		get_int_csv(rec[2], &TICK_time)
+		fmt.Println(TICK_time)
 
-	    fmt.Printf("lambda: ")
-	    get_float64_csv(rec[3], &lambda)
-	    fmt.Println(lambda)
+		fmt.Printf("lambda: ")
+		get_float64_csv(rec[3], &lambda)
+		fmt.Println(lambda)
 
-	    fmt.Printf("L (bits): ")
-	    get_int_csv(rec[4], &L)
-	    fmt.Println(L)
+		fmt.Printf("L (bits): ")
+		get_int_csv(rec[4], &L)
+		fmt.Println(L)
 
-	    fmt.Printf("C (bits per sec): ")
-	    get_float64_csv(rec[5], &C)
-	    fmt.Println(C)
+		fmt.Printf("C (bits per sec): ")
+		get_float64_csv(rec[5], &C)
+		fmt.Println(C)
 
-	    fmt.Printf("K (zero = infinity): ")
-	    get_int_csv(rec[6], &K)
-	    fmt.Println(K)
+		fmt.Printf("K (zero = infinity): ")
+		get_int_csv(rec[6], &K)
+		fmt.Println(K)
 
 	} else {
 		// Get Variables
@@ -191,7 +189,7 @@ func main() {
 	}
 
 	// Get Variables
-	
+
 	//End of display Variables
 
 	// Loop for average statistics
@@ -199,7 +197,7 @@ func main() {
 	for m := 1; m <= M; m++ {
 		test_t = time.Now()
 
-		logger.Println("\n\n-------")
+		fmt.Println("\n\n-------")
 
 		var wait_tick = get_tick_wait()
 		var qm = consumer.Init(logger, wait_tick)
@@ -220,6 +218,7 @@ func main() {
 		logger.Println("[Info] Queue Size", qm.Size)
 		logger.Println("[Stats] Average Packets in Queue (E[N]) =", stats.Avg_packets.GetAvg())
 		logger.Println("[Stats] Probability Packet Loss (P_LOSS) =", stats.Probability_loss.GetProportion())
+		logger.Println("[Stats] Proportion Server Idle (P_IDLE) =", stats.Proportion_idle.GetProportion())
 	}
 }
 

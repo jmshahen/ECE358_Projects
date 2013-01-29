@@ -24,13 +24,18 @@ func Init(l *log.Logger, wait_tick int) *stats.QueueMgr {
 }
 
 func Tick(t int) {
-	if next_tick == t {
-		consume_packet()
-		next_tick = t + wait_time_tick
+	if next_tick <= t {
+		consume_packet(t)
 	}
 }
 
-func consume_packet() {
+func consume_packet(t int) {
 	//logger.Println("[Consumer] Consuming Packet for", wait_time_tick, "ticks")
-	queue.Pop()
+	if queue.Size > 0 {
+		queue.Pop()
+		next_tick = t + wait_time_tick
+		stats.Proportion_idle.Total++
+	} else {
+		stats.Proportion_idle.AddOne()
+	}
 }
