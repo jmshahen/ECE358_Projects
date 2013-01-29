@@ -49,9 +49,9 @@ func getExpRandNum(l float64) int {
 	return int(math.Ceil(ans))
 }
 
-func producePacket(i interface{}) {
-	var qi = stats.QueueItem{nil, i}
-	if err := qm.Push(qi); err != nil {
+func producePacket(i int) {
+	var p = stats.Packet{i, 0}
+	if err := qm.Push(p); err != nil {
 		logger.Printf("[Producer] Received Error %v\n", err)
 	}
 }

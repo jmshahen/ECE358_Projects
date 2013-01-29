@@ -33,30 +33,25 @@ var get_int_debug = false
 func get_int_csv(r string, b *int) {
 	_, errI := fmt.Sscan(r, b)
 	if errI != nil {
-		fmt.Printf("converted = %d\n%v\n", b, errI)
-		os.Exit(1)
+		logger.Fatalf("converted = %d\n%v\n", b, errI)
 	}
 }
 
 func get_float64_csv(r string, b *float64) {
 	_, errI := fmt.Sscan(r, b)
 	if errI != nil {
-		fmt.Printf("converted = %f\n%v\n", b, errI)
-		os.Exit(1)
+		logger.Fatalf("converted = %f\n%v\n", b, errI)
 	}
 }
 func get_val(r *bufio.Reader) string {
 	var val, err = r.ReadString('\n')
 	if err != nil {
-		fmt.Println("| err:", err)
-		os.Exit(1)
+		logger.Fatalln("| err:", err)
 	}
 
-	if get_int_debug {
-		logger.Println("Val =", val)
-	}
 	var trimval = strings.TrimRight(val, "\n")
 	if get_int_debug {
+		logger.Println("Val =", val)
 		logger.Println("trimmed =", trimval)
 	}
 
@@ -68,8 +63,7 @@ func get_int(r *bufio.Reader, b *int) {
 	// valI, errI := strconv.ParseInt(trimval, 10, 32)
 	_, errI := fmt.Sscan(trimval, b)
 	if errI != nil {
-		logger.Printf("converted = %d\n%v\n", b, errI)
-		os.Exit(1)
+		logger.Fatalf("converted = %d\n%v\n", b, errI)
 	}
 }
 
@@ -78,8 +72,7 @@ func get_float64(r *bufio.Reader, b *float64) {
 	// valI, errI := strconv.ParseInt(trimval, 10, 32)
 	_, errI := fmt.Sscan(trimval, b)
 	if errI != nil {
-		logger.Printf("converted = %f\n%v\n", b, errI)
-		os.Exit(1)
+		logger.Fatalf("converted = %f\n%v\n", b, errI)
 	}
 }
 
@@ -92,104 +85,30 @@ func main() {
 	fmt.Println("---\n")
 	// End of Header
 
+	// set up the logger to point to stdout
 	logger = log.New(os.Stdout, "[ECE358 P1] ", log.LstdFlags)
 
-	if len(os.Args) == 2 {
-		file, err := os.Open(os.Args[1])
-		if err != nil {
-			fmt.Println("Error:", err)
-			return
-		}
-		defer file.Close()
-		reader := csv.NewReader(file)
-
-		rec, err := reader.Read()
-		if err == io.EOF {
-			fmt.Println("Error: No Headers")
-		} else if err != nil {
-			fmt.Println("Error:", err)
-			return
-		}
-		// throwaway header
-
-		rec, err = reader.Read()
-		if err == io.EOF {
-			fmt.Println("Error: No Data")
-		} else if err != nil {
-			fmt.Println("Error:", err)
-			return
-		}
-
-		fmt.Printf("M: ")
-		get_int_csv(rec[0], &M)
-		fmt.Println(M)
-
-		fmt.Printf("TICKS: ")
-		get_int_csv(rec[1], &TICKS)
-		fmt.Println(TICKS)
-
-		fmt.Printf("TICK Time (1 TICK = X milliseconds): ")
-		get_int_csv(rec[2], &TICK_time)
-		fmt.Println(TICK_time)
-
-		fmt.Printf("lambda: ")
-		get_float64_csv(rec[3], &lambda)
-		fmt.Println(lambda)
-
-		fmt.Printf("L (bits): ")
-		get_int_csv(rec[4], &L)
-		fmt.Println(L)
-
-		fmt.Printf("C (bits per sec): ")
-		get_float64_csv(rec[5], &C)
-		fmt.Println(C)
-
-		fmt.Printf("K (zero = infinity): ")
-		get_int_csv(rec[6], &K)
-		fmt.Println(K)
-
-	} else {
-		// Get Variables
-		var stdinR = bufio.NewReader(os.Stdin)
-		fmt.Printf("M: ")
-		get_int(stdinR, &M)
-
-		fmt.Printf("TICKS: ")
-		get_int(stdinR, &TICKS)
-
-		fmt.Printf("TICK Time (1 TICK = X milliseconds): ")
-		get_int(stdinR, &TICK_time)
-
-		fmt.Printf("lambda: ")
-		get_float64(stdinR, &lambda)
-
-		fmt.Printf("L (bits): ")
-		get_int(stdinR, &L)
-
-		fmt.Printf("C (bits per sec): ")
-		get_float64(stdinR, &C)
-
-		fmt.Printf("K (zero = infinity): ")
-		get_int(stdinR, &K)
-		// End of Get Variables
-
-		// Display Variables
-		fmt.Println("\nVariables being used:")
-		fmt.Println("\t M          ", M)
-		fmt.Println("\t TICKS      ", TICKS)
-		fmt.Println("\t TICK_time  ", TICK_time, "milliseconds")
-		fmt.Println("\t lambda     ", lambda)
-		fmt.Println("\t L          ", L, "bits")
-		fmt.Println("\t C          ", C, "bits/sec")
-		if K == 0 {
-			fmt.Println("\t K          ", "Infinity")
-		} else {
-			fmt.Println("\t K          ", K)
-		}
-	}
-
 	// Get Variables
+	if len(os.Args) == 2 {
+		get_args_params()
+	} else {
+		get_user_params()
+	}
+	// End of Get Variables
 
+	// Display Variables
+	fmt.Println("\nVariables being used:")
+	fmt.Println("\t M          ", M)
+	fmt.Println("\t TICKS      ", TICKS)
+	fmt.Println("\t TICK_time  ", TICK_time, "milliseconds")
+	fmt.Println("\t lambda     ", lambda)
+	fmt.Println("\t L          ", L, "bits")
+	fmt.Println("\t C          ", C, "bits/sec")
+	if K == 0 {
+		fmt.Println("\t K          ", "Infinity")
+	} else {
+		fmt.Println("\t K          ", K)
+	}
 	//End of display Variables
 
 	// Loop for average statistics
@@ -217,6 +136,7 @@ func main() {
 		logger.Println("[Info] Finished running Test #", m, "elapsed time:", time.Since(test_t))
 		logger.Println("[Info] Queue Size", qm.Size)
 		logger.Println("[Stats] Average Packets in Queue (E[N]) =", stats.Avg_packets.GetAvg())
+		logger.Println("[Stats] Average Sojourn Time (E[T]) =", stats.Avg_sojourn.GetAvg())
 		logger.Println("[Stats] Probability Packet Loss (P_LOSS) =", stats.Probability_loss.GetProportion())
 		logger.Println("[Stats] Proportion Server Idle (P_IDLE) =", stats.Proportion_idle.GetProportion())
 	}
@@ -224,4 +144,60 @@ func main() {
 
 func get_tick_wait() int {
 	return int(math.Ceil(((float64(L) / C) * 1000) / float64(TICK_time)))
+}
+
+func get_args_params() {
+	file, err := os.Open(os.Args[1])
+	if err != nil {
+		logger.Fatalf("Error:", err)
+	}
+	defer file.Close()
+	reader := csv.NewReader(file)
+
+	rec, err := reader.Read()
+	if err == io.EOF {
+		logger.Fatalf("Error: No Headers")
+	} else if err != nil {
+		logger.Fatalf("Error:", err)
+	}
+	// throwaway header
+
+	rec, err = reader.Read()
+	if err == io.EOF {
+		logger.Fatalf("Error: No Data")
+	} else if err != nil {
+		logger.Fatalf("Error:", err)
+	}
+
+	get_int_csv(rec[0], &M)
+	get_int_csv(rec[1], &TICKS)
+	get_int_csv(rec[2], &TICK_time)
+	get_float64_csv(rec[3], &lambda)
+	get_int_csv(rec[4], &L)
+	get_float64_csv(rec[5], &C)
+	get_int_csv(rec[6], &K)
+}
+
+func get_user_params() {
+	var stdinR = bufio.NewReader(os.Stdin)
+	fmt.Printf("M: ")
+	get_int(stdinR, &M)
+
+	fmt.Printf("TICKS: ")
+	get_int(stdinR, &TICKS)
+
+	fmt.Printf("TICK Time (1 TICK = X milliseconds): ")
+	get_int(stdinR, &TICK_time)
+
+	fmt.Printf("lambda: ")
+	get_float64(stdinR, &lambda)
+
+	fmt.Printf("L (bits): ")
+	get_int(stdinR, &L)
+
+	fmt.Printf("C (bits per sec): ")
+	get_float64(stdinR, &C)
+
+	fmt.Printf("K (zero = infinity): ")
+	get_int(stdinR, &K)
 }

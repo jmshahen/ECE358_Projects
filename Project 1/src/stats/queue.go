@@ -14,10 +14,15 @@ type QueueMgr struct {
 
 type QueueItem struct {
 	Next *QueueItem
-	Data interface{}
+	Data Packet
 }
 
-func (qm *QueueMgr) Push(item interface{}) error {
+type Packet struct {
+	Generated int
+	Finished  int
+}
+
+func (qm *QueueMgr) Push(item Packet) error {
 	var qItem = QueueItem{nil, item}
 
 	if qm.Size == 0 {
@@ -38,13 +43,13 @@ func (qm *QueueMgr) Push(item interface{}) error {
 	return nil
 }
 
-func (qm *QueueMgr) Pop() (interface{}, error) {
+func (qm *QueueMgr) Pop() (Packet, error) {
+	var item Packet
 	if qm.Size != 0 {
-		var item interface{}
 		item = qm.Head.Data
 		qm.Head = qm.Head.Next
 		qm.Size--
 		return item, nil
 	}
-	return nil, fmt.Errorf("Queue is full, max size %d packets", qm.MaxSize)
+	return item, fmt.Errorf("Queue is full, max size %d packets", qm.MaxSize)
 }

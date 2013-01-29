@@ -32,9 +32,19 @@ func Tick(t int) {
 func consume_packet(t int) {
 	//logger.Println("[Consumer] Consuming Packet for", wait_time_tick, "ticks")
 	if queue.Size > 0 {
-		queue.Pop()
+		var p stats.Packet
+
+		p, err := queue.Pop()
+
+		if err != nil {
+			logger.Fatalf("Recieved Error From Pop: %v", err)
+		}
+
 		next_tick = t + wait_time_tick
 		stats.Proportion_idle.Total++
+
+		p.Finished = t
+		stats.Avg_sojourn.AddAvg(p.SojournTime())
 	} else {
 		stats.Proportion_idle.AddOne()
 	}

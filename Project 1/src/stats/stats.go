@@ -53,3 +53,7 @@ func (p *Pro) AddOne() {
 	p.Total++
 	p.Less++
 }
+
+func (p Packet) SojournTime() float64 {
+	return float64(p.Finished - p.Generated)
+}
