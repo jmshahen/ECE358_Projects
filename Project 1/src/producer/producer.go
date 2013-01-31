@@ -31,7 +31,7 @@ func Tick(t float64) {
 	if t == nextTick {
 		producePacket(t)
 		nextTick = t + getExpRandNum(lambda)
-		//logger.Println("[Producer] Next Packet at", nextTick)
+		//logger.Println("[Producer] Next Tick", nextTick)
 	}
 }
 
@@ -54,4 +54,5 @@ func producePacket(i float64) {
 	if err := qm.Push(p); err != nil {
 		logger.Printf("[Producer] Received Error %v\n", err)
 	}
+	//logger.Println("[Producer] Packet produced")
 }

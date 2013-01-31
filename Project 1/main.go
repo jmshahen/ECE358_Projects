@@ -134,12 +134,14 @@ func main() {
 			// Getting the average packets in the queue
 			stats.Avg_packets.AddAvg(float64(qm.Size))
 		}
-		logger.Println("[Info] Finished running Test #", m, "elapsed time:", time.Since(test_t))
+		logger.Println("[Info] elapsed time:", time.Since(test_t))
 		logger.Println("[Info] Queue Size", qm.Size)
 		fmt.Println("[Stats] Average Packets in Queue (E[N])  =\t", stats.Avg_packets.GetAvg())
 		fmt.Println("[Stats] Average Sojourn Time (E[T])      =\t", stats.Avg_sojourn.GetAvg())
 		fmt.Println("[Stats] Probability Packet Loss (P_LOSS) =\t", stats.Probability_loss.GetProportion())
 		fmt.Println("[Stats] Proportion Server Idle (P_IDLE)  =\t", stats.Proportion_idle.GetProportion())
+		fmt.Println("[Stats] Total packets \t\t\t =\t", stats.Probability_loss.Total)
+		fmt.Println("[Stats] Time Simulated (s)\t\t =\t", TICKS*TICK_time/1000)
 	}
 }
 
