@@ -10,13 +10,13 @@ import (
 
 var (
 	logger      *log.Logger
-	nextTick    int = 1
+	nextTick    float64 = 1
 	lambda      float64
 	qm          *stats.QueueMgr
-	time_2_tick int //1 tick = X milliseconds
+	time_2_tick float64 //1 tick = X milliseconds
 )
 
-func Init(l *log.Logger, _qm *stats.QueueMgr, _lambda float64, TICK_time int) {
+func Init(l *log.Logger, _qm *stats.QueueMgr, _lambda float64, TICK_time float64) {
 	logger = l
 	lambda = _lambda
 	qm = _qm
@@ -27,7 +27,7 @@ func Init(l *log.Logger, _qm *stats.QueueMgr, _lambda float64, TICK_time int) {
 	rand.Seed(time.Now().UnixNano())
 }
 
-func Tick(t int) {
+func Tick(t float64) {
 	if t == nextTick {
 		producePacket(t)
 		nextTick = t + getExpRandNum(lambda)
@@ -37,7 +37,7 @@ func Tick(t int) {
 
 var debug_getExpRandNum = false
 
-func getExpRandNum(l float64) int {
+func getExpRandNum(l float64) float64 {
 	a := 1 - rand.Float64()
 	b := math.Log(a)
 	c := (-1 / l)
@@ -46,10 +46,10 @@ func getExpRandNum(l float64) int {
 	if debug_getExpRandNum {
 		logger.Println("b", b, "\nc", c, "\nd", d, "\nans", ans, "\n")
 	}
-	return int(math.Ceil(ans))
+	return float64(math.Ceil(ans))
 }
 
-func producePacket(i int) {
+func producePacket(i float64) {
 	var p = stats.Packet{i, 0}
 	if err := qm.Push(p); err != nil {
 		logger.Printf("[Producer] Received Error %v\n", err)

@@ -6,8 +6,8 @@ import (
 )
 
 type QueueMgr struct {
-	Size    int        // the current size of the queue
-	MaxSize int        // the maximum size of the queue, 0 for infinite
+	Size    float64    // the current size of the queue
+	MaxSize float64    // the maximum size of the queue, 0 for infinite
 	Head    *QueueItem // the head of the queue
 	Tail    *QueueItem // the tail of the queue
 }
@@ -18,8 +18,8 @@ type QueueItem struct {
 }
 
 type Packet struct {
-	Generated int
-	Finished  int
+	Generated float64
+	Finished  float64
 }
 
 func (qm *QueueMgr) Push(item Packet) error {

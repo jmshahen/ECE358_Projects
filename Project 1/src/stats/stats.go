@@ -6,12 +6,12 @@ import (
 
 type Avg struct {
 	Total float64
-	Num   int
+	Num   float64
 }
 
 type Pro struct {
-	Less  int
-	Total int
+	Less  float64
+	Total float64
 }
 
 var (
@@ -34,7 +34,7 @@ func (a Avg) GetAvg() float64 {
 	if a.Num == 0 {
 		return 0
 	}
-	return a.Total / float64(a.Num)
+	return a.Total / a.Num
 }
 
 func (a *Avg) AddAvg(add float64) {

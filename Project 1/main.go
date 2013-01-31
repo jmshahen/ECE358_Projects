@@ -17,25 +17,26 @@ import (
 
 // Input Variables
 var (
-	M         int     // number of times to repeat the tests (avg)
-	TICKS     int     // length of the test
-	TICK_time int     // 1 TICK = X milliseconds
+	M         float64 // number of times to repeat the tests (avg)
+	TICKS     float64 // length of the test
+	TICK_time float64 // 1 TICK = X milliseconds
 	lambda    float64 // Average number of packets generated /arrived (packets per second)
-	L         int     // Length of a packet in bits
+	L         float64 // Length of a packet in bits
 	C         float64 // The service time received by a packet. (Example: The transmission rate of the output link in bits per second.)
-	K         int     // The buffer size, 0 for infinite size
+	K         float64 // The buffer size, 0 for infinite size
 )
 
 var logger *log.Logger
 
 var get_int_debug = false
 
+/*
 func get_int_csv(r string, b *int) {
 	_, errI := fmt.Sscan(r, b)
 	if errI != nil {
 		logger.Fatalf("converted = %d\n%v\n", b, errI)
 	}
-}
+}*/
 
 func get_float64_csv(r string, b *float64) {
 	_, errI := fmt.Sscan(r, b)
@@ -58,14 +59,14 @@ func get_val(r *bufio.Reader) string {
 	return trimval
 }
 
-func get_int(r *bufio.Reader, b *int) {
+/*func get_int(r *bufio.Reader, b *int) {
 	var trimval = get_val(r)
 	// valI, errI := strconv.ParseInt(trimval, 10, 32)
 	_, errI := fmt.Sscan(trimval, b)
 	if errI != nil {
 		logger.Fatalf("converted = %d\n%v\n", b, errI)
 	}
-}
+}*/
 
 func get_float64(r *bufio.Reader, b *float64) {
 	var trimval = get_val(r)
@@ -113,7 +114,7 @@ func main() {
 
 	// Loop for average statistics
 	var test_t time.Time
-	for m := 1; m <= M; m++ {
+	for m := 1.0; m <= M; m++ {
 		test_t = time.Now()
 
 		fmt.Println("\n\n-------")
@@ -126,7 +127,7 @@ func main() {
 
 		logger.Println("---")
 
-		for t := 1; t < TICKS; t++ {
+		for t := 1.0; t < TICKS; t++ {
 			producer.Tick(t)
 			consumer.Tick(t)
 
@@ -142,8 +143,8 @@ func main() {
 	}
 }
 
-func get_tick_wait() int {
-	return int(math.Ceil(((float64(L) / C) * 1000) / float64(TICK_time)))
+func get_tick_wait() float64 {
+	return float64(math.Ceil(((float64(L) / C) * 1000) / float64(TICK_time)))
 }
 
 func get_args_params() {
@@ -169,35 +170,35 @@ func get_args_params() {
 		logger.Fatalf("Error:", err)
 	}
 
-	get_int_csv(rec[0], &M)
-	get_int_csv(rec[1], &TICKS)
-	get_int_csv(rec[2], &TICK_time)
+	get_float64_csv(rec[0], &M)
+	get_float64_csv(rec[1], &TICKS)
+	get_float64_csv(rec[2], &TICK_time)
 	get_float64_csv(rec[3], &lambda)
-	get_int_csv(rec[4], &L)
+	get_float64_csv(rec[4], &L)
 	get_float64_csv(rec[5], &C)
-	get_int_csv(rec[6], &K)
+	get_float64_csv(rec[6], &K)
 }
 
 func get_user_params() {
 	var stdinR = bufio.NewReader(os.Stdin)
 	fmt.Printf("M: ")
-	get_int(stdinR, &M)
+	get_float64(stdinR, &M)
 
 	fmt.Printf("TICKS: ")
-	get_int(stdinR, &TICKS)
+	get_float64(stdinR, &TICKS)
 
 	fmt.Printf("TICK Time (1 TICK = X milliseconds): ")
-	get_int(stdinR, &TICK_time)
+	get_float64(stdinR, &TICK_time)
 
 	fmt.Printf("lambda: ")
 	get_float64(stdinR, &lambda)
 
 	fmt.Printf("L (bits): ")
-	get_int(stdinR, &L)
+	get_float64(stdinR, &L)
 
 	fmt.Printf("C (bits per sec): ")
 	get_float64(stdinR, &C)
 
 	fmt.Printf("K (zero = infinity): ")
-	get_int(stdinR, &K)
+	get_float64(stdinR, &K)
 }
