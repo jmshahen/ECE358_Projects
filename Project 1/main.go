@@ -11,6 +11,7 @@ import (
 	"os"
 	"producer"
 	"stats"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -143,6 +144,7 @@ func main() {
 		fmt.Println("[Stats] Total packets                       =\t", stats.Probability_loss.Total)
 		fmt.Println("[Stats] Time Simulated (s)                  =\t", TICKS*TICK_time/1000)
 	}
+	write_csv_output()
 }
 
 func get_tick_wait() float64 {
@@ -203,4 +205,32 @@ func get_user_params() {
 
 	fmt.Printf("K (zero = infinity): ")
 	get_float64(stdinR, &K)
+}
+
+func write_csv_output() {
+	file, err := os.Open("test_out.csv")
+	if err != nil {
+		logger.Fatalf("Error in opening write file:", err)
+	}
+	defer file.Close()
+	writter := csv.NewWriter(file)
+
+	rec := make([]string, 7)
+
+	rec[0] = strconv.FormatFloat(M, 'g', -1, 64)
+	rec[1] = strconv.FormatFloat(TICKS, 'g', -1, 64)
+	rec[2] = strconv.FormatFloat(TICK_time, 'g', -1, 64)
+	rec[3] = strconv.FormatFloat(lambda, 'g', -1, 64)
+	rec[4] = strconv.FormatFloat(L, 'g', -1, 64)
+	rec[5] = strconv.FormatFloat(C, 'g', -1, 64)
+	rec[6] = strconv.FormatFloat(K, 'g', -1, 64)
+	/*	record[7] = E[n]
+		record[8] = E[t]
+		record[9] = P_loss
+		record[10] = P_Idle
+		record[11] = Total packets
+		record[12] = Total time simulated*/
+
+	writter.Write(rec)
+	writter.Flush()
 }
