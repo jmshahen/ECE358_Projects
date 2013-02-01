@@ -1,0 +1,50 @@
+export GOROOT=/n/Software/go
+export PATH=$PATH:$GOROOT/bin
+export GOPATH=`pwd`
+
+./main.exe question3/args_1.csv
+./main.exe question3/args_2.csv
+./main.exe question3/args_3.csv
+./main.exe question3/args_4.csv
+./main.exe question3/args_5.csv
+./main.exe question3/args_6.csv
+./main.exe question3/args_7.csv
+./main.exe question3/args_8.csv
+
+mv test_out.csv question3.csv
+
+./main.exe question5/args_1.csv
+./main.exe question5/args_2.csv
+./main.exe question5/args_3.csv
+./main.exe question5/args_4.csv
+./main.exe question5/args_5.csv
+./main.exe question5/args_6.csv
+./main.exe question5/args_7.csv
+./main.exe question5/args_8.csv
+./main.exe question5/args_9.csv
+./main.exe question5/args_10.csv
+./main.exe question5/args_11.csv
+./main.exe question5/args_12.csv
+./main.exe question5/args_13.csv
+./main.exe question5/args_14.csv
+./main.exe question5/args_15.csv
+./main.exe question5/args_16.csv
+./main.exe question5/args_17.csv
+./main.exe question5/args_18.csv
+./main.exe question5/args_19.csv
+./main.exe question5/args_20.csv
+./main.exe question5/args_21.csv
+./main.exe question5/args_22.csv
+./main.exe question5/args_23.csv
+./main.exe question5/args_24.csv
+./main.exe question5/args_25.csv
+./main.exe question5/args_26.csv
+./main.exe question5/args_27.csv
+./main.exe question5/args_28.csv
+./main.exe question5/args_29.csv
+./main.exe question5/args_30.csv
+./main.exe question5/args_31.csv
+./main.exe question5/args_32.csv
+./main.exe question5/args_33.csv
+
+mv test_out.csv question5.csv
