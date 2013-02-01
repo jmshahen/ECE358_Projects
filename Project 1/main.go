@@ -126,7 +126,7 @@ func main() {
 	for m := 1.0; m <= M; m++ {
 		test_t = time.Now()
 
-		fmt.Println("\n\n-------")
+		fmt.Println("-------\n\n")
 
 		wait_tick := get_tick_wait()
 		qm := consumer.Init(logger, wait_tick)
@@ -143,6 +143,8 @@ func main() {
 			// Getting the average packets in the queue
 			stats.Avg_packets.AddAvg(float64(qm.Size))
 		}
+		logger.Println("Test Finished\n")
+
 		tsince = time.Since(test_t)
 		fmt.Println("[Stats] Elapsed Time                        =\t", tsince)
 		fmt.Println("[Stats] End Queue Size                      =\t", qm.Size)
@@ -163,6 +165,18 @@ func main() {
 		Avg_total_packets.AddAvg(stats.Probability_loss.Total)
 		Avg_elapsed_time.AddAvg(tsince.Seconds()) //in seconds
 	}
+
+	fmt.Println("\n---\n")
+	tsince = time.Since(test_t)
+	fmt.Println("[Stats] Elapsed Time                            =\t", tsince)
+	fmt.Printf("\n\tAverages over M (%d)\n", int(M))
+	fmt.Println("[Stats] Avg Average Packets in Queue (E[N])     =\t", Avg_Avg_packets.GetAvg())
+	fmt.Println("[Stats] Avg Average Sojourn Time (E[T]) (TICKS) =\t", Avg_Avg_sojourn.GetAvg())
+	fmt.Println("[Stats] Avg Probability Packet Loss (P_LOSS)    =\t", Avg_Probability_loss.GetAvg())
+	fmt.Println("[Stats] Avg Proportion Server Idle (P_IDLE)     =\t", Avg_Proportion_idle.GetAvg())
+	fmt.Println("[Stats] Avg Total Packets Produced              =\t", Avg_total_packets.GetAvg())
+	fmt.Println("[Stats] Avg Total Packets Consumed              =\t", Avg_Avg_sojourn.GetAvg())
+	fmt.Println("[Stats] Avg Time Elapsed (s)                    =\t", Avg_elapsed_time.GetAvg())
 }
 
 func get_tick_wait() float64 {
