@@ -25,6 +25,16 @@ var (
 	L         float64 // Length of a packet in bits
 	C         float64 // The service time received by a packet. (Example: The transmission rate of the output link in bits per second.)
 	K         float64 // The buffer size, 0 for infinite size
+
+	//Averages over M
+	Avg_Avg_packets      stats.Avg
+	Avg_Avg_sojourn      stats.Avg
+	Avg_Proportion_idle  stats.Avg
+	Avg_Probability_loss stats.Avg
+	Avg_total_packets    stats.Avg
+	Avg_elapsed_time     stats.Avg
+
+	csv_cols int = 15
 )
 
 var logger *log.Logger
@@ -115,13 +125,15 @@ func main() {
 
 	// Loop for average statistics
 	var test_t time.Time
+	var test_b time.Time = time.Now()
+	var tsince time.Duration
 	for m := 1.0; m <= M; m++ {
 		test_t = time.Now()
 
-		fmt.Println("\n\n-------")
+		fmt.Println("-------\n\n")
 
-		var wait_tick = get_tick_wait()
-		var qm = consumer.Init(logger, wait_tick)
+		wait_tick := get_tick_wait()
+		qm := consumer.Init(logger, wait_tick)
 		qm.MaxSize = K
 		producer.Init(logger, qm, lambda, TICK_time)
 		stats.Init(logger)
@@ -135,16 +147,43 @@ func main() {
 			// Getting the average packets in the queue
 			stats.Avg_packets.AddAvg(float64(qm.Size))
 		}
-		logger.Println("[Info] elapsed time:", time.Since(test_t))
-		logger.Println("[Info] Queue Size", qm.Size)
+		logger.Println("Test Finished\n")
+
+		tsince = time.Since(test_t)
+		fmt.Println("[Stats] Elapsed Time                        =\t", tsince)
+		fmt.Println("[Stats] End Queue Size                      =\t", qm.Size)
 		fmt.Println("[Stats] Average Packets in Queue (E[N])     =\t", stats.Avg_packets.GetAvg())
 		fmt.Println("[Stats] Average Sojourn Time (E[T]) (TICKS) =\t", stats.Avg_sojourn.GetAvg())
 		fmt.Println("[Stats] Probability Packet Loss (P_LOSS)    =\t", stats.Probability_loss.GetProportion())
 		fmt.Println("[Stats] Proportion Server Idle (P_IDLE)     =\t", stats.Proportion_idle.GetProportion())
-		fmt.Println("[Stats] Total packets                       =\t", stats.Probability_loss.Total)
+		fmt.Println("[Stats] Total Packets Produced              =\t", stats.Probability_loss.Total)
+		fmt.Println("[Stats] Total Packets Consumed              =\t", stats.Avg_sojourn.Num)
 		fmt.Println("[Stats] Time Simulated (s)                  =\t", TICKS*TICK_time/1000)
+
+		// Averages over M
+		Avg_Avg_packets.AddAvg(stats.Avg_packets.GetAvg())
+		Avg_Avg_sojourn.AddAvg(stats.Avg_sojourn.GetAvg())
+		Avg_Probability_loss.AddAvg(stats.Probability_loss.GetProportion())
+		Avg_Proportion_idle.AddAvg(stats.Proportion_idle.GetProportion())
+
+		Avg_total_packets.AddAvg(stats.Probability_loss.Total)
+		Avg_elapsed_time.AddAvg(tsince.Seconds()) //in seconds
 	}
-	write_csv_output()
+
+	tsince = time.Since(test_b)
+
+	fmt.Println("\n---\n")
+	fmt.Println("[Stats] Elapsed Time                            =\t", tsince)
+	fmt.Printf("\n\tAverages over M (%d)\n", int(M))
+	fmt.Println("[Stats] Avg Average Packets in Queue (E[N])     =\t", Avg_Avg_packets.GetAvg())
+	fmt.Println("[Stats] Avg Average Sojourn Time (E[T]) (TICKS) =\t", Avg_Avg_sojourn.GetAvg())
+	fmt.Println("[Stats] Avg Probability Packet Loss (P_LOSS)    =\t", Avg_Probability_loss.GetAvg())
+	fmt.Println("[Stats] Avg Proportion Server Idle (P_IDLE)     =\t", Avg_Proportion_idle.GetAvg())
+	fmt.Println("[Stats] Avg Total Packets Produced              =\t", Avg_total_packets.GetAvg())
+	fmt.Println("[Stats] Avg Total Packets Consumed              =\t", Avg_Avg_sojourn.GetAvg())
+	fmt.Println("[Stats] Avg Time Elapsed (s)                    =\t", Avg_elapsed_time.GetAvg())
+	write_csv_header()
+	write_csv_output(tsince.Seconds())
 }
 
 func get_tick_wait() float64 {
@@ -202,12 +241,11 @@ func get_user_params() {
 
 	fmt.Printf("C (bits per sec): ")
 	get_float64(stdinR, &C)
-
 	fmt.Printf("K (zero = infinity): ")
 	get_float64(stdinR, &K)
 }
 
-func write_csv_output() {
+func write_csv_output(t_since float64) {
 
 	file, err := os.OpenFile("test_out.csv", os.O_RDWR|os.O_APPEND, 0660)
 	if err != nil {
@@ -216,47 +254,84 @@ func write_csv_output() {
 	defer file.Close()
 	writter := csv.NewWriter(file)
 
-	rec := make([]string, 7)
-
-	rec[0] = strconv.FormatFloat(M, 'f', -1, 64)
-	rec[1] = strconv.FormatFloat(TICKS, 'f', -1, 64)
-	rec[2] = strconv.FormatFloat(TICK_time, 'f', -1, 64)
-	rec[3] = strconv.FormatFloat(lambda, 'f', -1, 64)
-	rec[4] = strconv.FormatFloat(L, 'f', -1, 64)
-	rec[5] = strconv.FormatFloat(C, 'f', -1, 64)
-	rec[6] = strconv.FormatFloat(K, 'f', -1, 64)
-	/*	record[7] = E[n]
-		record[8] = E[t]
-		record[9] = P_loss
-		record[10] = P_Idle
-		record[11] = Total packets
-		record[12] = Total time simulated*/
+	rec := make([]string, csv_cols)
+	var i = 0
+	rec[i] = strconv.FormatFloat(M, 'f', -1, 64)
+	i++
+	rec[i] = strconv.FormatFloat(TICKS, 'f', -1, 64)
+	i++
+	rec[i] = strconv.FormatFloat(TICK_time, 'f', -1, 64)
+	i++
+	rec[i] = strconv.FormatFloat(lambda, 'f', -1, 64)
+	i++
+	rec[i] = strconv.FormatFloat(L, 'f', -1, 64)
+	i++
+	rec[i] = strconv.FormatFloat(C, 'f', -1, 64)
+	i++
+	rec[i] = strconv.FormatFloat(K, 'f', -1, 64)
+	i++
+	rec[i] = strconv.FormatFloat(get_tick_wait(), 'f', -1, 64)
+	i++
+	rec[i] = strconv.FormatFloat(Avg_total_packets.GetAvg(), 'f', -1, 64)
+	i++
+	rec[i] = strconv.FormatFloat(Avg_Avg_sojourn.GetAvg(), 'f', -1, 64)
+	i++
+	rec[i] = strconv.FormatFloat(Avg_Probability_loss.GetAvg()*TICK_time/1000, 'f', -1, 64)
+	i++
+	rec[i] = strconv.FormatFloat(Avg_Proportion_idle.GetAvg()*TICK_time/1000, 'f', -1, 64)
+	i++
+	rec[i] = strconv.FormatFloat(Avg_Avg_packets.GetAvg(), 'f', -1, 64)
+	i++
+	rec[i] = strconv.FormatFloat(Avg_elapsed_time.GetAvg(), 'f', -1, 64)
+	i++
+	rec[i] = strconv.FormatFloat(t_since, 'f', -1, 64)
+	i++
 
 	writter.Write(rec)
 	writter.Flush()
 }
 
 func write_csv_header() {
-	file, err := os.Open("test_out.csv")
-	if err != nil {
-		logger.Fatalf("Error in opening write file:", err)
+	_, err := os.Open("test_out.csv")
+	if os.IsNotExist(err) {
+		file, _ := os.Create("test_out.csv")
+		writter := csv.NewWriter(file)
+
+		var i = 0
+		headers := make([]string, csv_cols)
+		headers[i] = "M"
+		i++
+		headers[i] = "TICKS"
+		i++
+		headers[i] = "TICK Time (sec)"
+		i++
+		headers[i] = "lambda"
+		i++
+		headers[i] = "L : Packet length (bits)"
+		i++
+		headers[i] = "C = bits per secound"
+		i++
+		headers[i] = "K: Buffer capacity (zero = inf)"
+		i++
+		headers[i] = "Service Time (Ticks)"
+		i++
+		headers[i] = "E[N] Avg num of packets in queue"
+		i++
+		headers[i] = "E[T] Avg sojourn time (sec)"
+		i++
+		headers[i] = "P_Loss - packet loss"
+		i++
+		headers[i] = "P_Idle - server idle (sec)"
+		i++
+		headers[i] = "Total Packets"
+		i++
+		headers[i] = "Average Time (sec)"
+		i++
+		headers[i] = "Total Time (sec)"
+		i++
+
+		writter.Write(headers)
+		writter.Flush()
+		file.Close()
 	}
-	defer file.Close()
-	writter := csv.NewWriter(file)
-
-	headers := make([]string, 13)
-	headers[0] = "M"
-	headers[1] = "TICKS"
-	headers[2] = "TICK Time = milliseconds"
-	headers[3] = "lambda"
-	headers[4] = "L"
-	headers[5] = "C = bits per secound"
-	headers[6] = "K (zero = inf)"
-	headers[7] = "E[N]"
-	headers[8] = "E[T]"
-	headers[9] = "P_Loss"
-	headers[10] = "P_Idle"
-	headers[11] = "Total Packets"
-	headers[12] = "Total Time"
-
 }

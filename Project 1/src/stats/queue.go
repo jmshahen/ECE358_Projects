@@ -53,3 +53,9 @@ func (qm *QueueMgr) Pop() (Packet, error) {
 	}
 	return item, fmt.Errorf("Queue is full, max size %d packets", qm.MaxSize)
 }
+
+func (qm *QueueMgr) Clear() {
+	qm.Size = 0
+	qm.Head = nil
+	qm.Tail = nil
+}
