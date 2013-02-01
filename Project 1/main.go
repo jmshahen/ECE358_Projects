@@ -208,7 +208,8 @@ func get_user_params() {
 }
 
 func write_csv_output() {
-	file, err := os.Open("test_out.csv")
+
+	file, err := os.OpenFile("test_out.csv", os.O_RDWR|os.O_APPEND, 0660)
 	if err != nil {
 		logger.Fatalf("Error in opening write file:", err)
 	}
@@ -217,13 +218,13 @@ func write_csv_output() {
 
 	rec := make([]string, 7)
 
-	rec[0] = strconv.FormatFloat(M, 'g', -1, 64)
-	rec[1] = strconv.FormatFloat(TICKS, 'g', -1, 64)
-	rec[2] = strconv.FormatFloat(TICK_time, 'g', -1, 64)
-	rec[3] = strconv.FormatFloat(lambda, 'g', -1, 64)
-	rec[4] = strconv.FormatFloat(L, 'g', -1, 64)
-	rec[5] = strconv.FormatFloat(C, 'g', -1, 64)
-	rec[6] = strconv.FormatFloat(K, 'g', -1, 64)
+	rec[0] = strconv.FormatFloat(M, 'f', -1, 64)
+	rec[1] = strconv.FormatFloat(TICKS, 'f', -1, 64)
+	rec[2] = strconv.FormatFloat(TICK_time, 'f', -1, 64)
+	rec[3] = strconv.FormatFloat(lambda, 'f', -1, 64)
+	rec[4] = strconv.FormatFloat(L, 'f', -1, 64)
+	rec[5] = strconv.FormatFloat(C, 'f', -1, 64)
+	rec[6] = strconv.FormatFloat(K, 'f', -1, 64)
 	/*	record[7] = E[n]
 		record[8] = E[t]
 		record[9] = P_loss
@@ -233,4 +234,29 @@ func write_csv_output() {
 
 	writter.Write(rec)
 	writter.Flush()
+}
+
+func write_csv_header() {
+	file, err := os.Open("test_out.csv")
+	if err != nil {
+		logger.Fatalf("Error in opening write file:", err)
+	}
+	defer file.Close()
+	writter := csv.NewWriter(file)
+
+	headers := make([]string, 13)
+	headers[0] = "M"
+	headers[1] = "TICKS"
+	headers[2] = "TICK Time = milliseconds"
+	headers[3] = "lambda"
+	headers[4] = "L"
+	headers[5] = "C = bits per secound"
+	headers[6] = "K (zero = inf)"
+	headers[7] = "E[N]"
+	headers[8] = "E[T]"
+	headers[9] = "P_Loss"
+	headers[10] = "P_Idle"
+	headers[11] = "Total Packets"
+	headers[12] = "Total Time"
+
 }
