@@ -10,7 +10,7 @@ import (
 
 var (
 	logger      *log.Logger
-	nextTick    float64 = 1
+	nextTick    float64
 	lambda      float64
 	qm          *stats.QueueMgr
 	time_2_tick float64 //1 tick = X milliseconds
@@ -21,6 +21,7 @@ func Init(l *log.Logger, _qm *stats.QueueMgr, _lambda float64, TICK_time float64
 	lambda = _lambda
 	qm = _qm
 	time_2_tick = TICK_time
+	nextTick = 1
 
 	logger.Println("[Producer] Started")
 
@@ -46,13 +47,13 @@ func getExpRandNum(l float64) float64 {
 	if debug_getExpRandNum {
 		logger.Println("b", b, "\nc", c, "\nd", d, "\nans", ans, "\n")
 	}
-	return float64(math.Ceil(ans))
+	return math.Ceil(ans)
 }
 
 func producePacket(i float64) {
 	var p = stats.Packet{i, 0}
 	if err := qm.Push(p); err != nil {
-		logger.Printf("[Producer] Received Error %v\n", err)
+		//logger.Printf("[Producer] Received Error %v\n", err)
 	}
 	//logger.Println("[Producer] Packet produced")
 }

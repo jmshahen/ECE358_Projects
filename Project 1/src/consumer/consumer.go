@@ -7,7 +7,7 @@ import (
 
 var logger *log.Logger
 var (
-	next_tick      float64 = 1
+	next_tick      float64
 	wait_time_tick float64 // in milliseconds
 	queue          stats.QueueMgr
 )
@@ -17,9 +17,11 @@ func Init(l *log.Logger, wait_tick float64) *stats.QueueMgr {
 	logger.Println("[Consumer] Started")
 
 	wait_time_tick = wait_tick
+	next_tick = 1
 
 	logger.Println("[Consumer] Service time is", wait_time_tick, "ticks")
 
+	queue.Clear()
 	return &queue
 }
 
@@ -40,11 +42,11 @@ func consume_packet(t float64) {
 			logger.Fatalf("Recieved Error From Pop: %v", err)
 		}
 
-		next_tick = t + wait_time_tick
-		stats.Proportion_idle.Total++
-
 		p.Finished = t
 		stats.Avg_sojourn.AddAvg(p.SojournTime())
+
+		next_tick = t + wait_time_tick
+		stats.Proportion_idle.Total++
 	} else {
 		stats.Proportion_idle.AddOne()
 	}

@@ -24,6 +24,14 @@ var (
 	L         float64 // Length of a packet in bits
 	C         float64 // The service time received by a packet. (Example: The transmission rate of the output link in bits per second.)
 	K         float64 // The buffer size, 0 for infinite size
+
+	//Averages over M
+	Avg_Avg_packets      stats.Avg
+	Avg_Avg_sojourn      stats.Avg
+	Avg_Proportion_idle  stats.Avg
+	Avg_Probability_loss stats.Avg
+	Avg_total_packets    stats.Avg
+	Avg_elapsed_time     stats.Avg
 )
 
 var logger *log.Logger
@@ -114,13 +122,14 @@ func main() {
 
 	// Loop for average statistics
 	var test_t time.Time
+	var tsince time.Duration
 	for m := 1.0; m <= M; m++ {
 		test_t = time.Now()
 
 		fmt.Println("\n\n-------")
 
-		var wait_tick = get_tick_wait()
-		var qm = consumer.Init(logger, wait_tick)
+		wait_tick := get_tick_wait()
+		qm := consumer.Init(logger, wait_tick)
 		qm.MaxSize = K
 		producer.Init(logger, qm, lambda, TICK_time)
 		stats.Init(logger)
@@ -134,14 +143,25 @@ func main() {
 			// Getting the average packets in the queue
 			stats.Avg_packets.AddAvg(float64(qm.Size))
 		}
-		logger.Println("[Info] elapsed time:", time.Since(test_t))
-		logger.Println("[Info] Queue Size", qm.Size)
+		tsince = time.Since(test_t)
+		fmt.Println("[Stats] Elapsed Time                        =\t", tsince)
+		fmt.Println("[Stats] End Queue Size                      =\t", qm.Size)
 		fmt.Println("[Stats] Average Packets in Queue (E[N])     =\t", stats.Avg_packets.GetAvg())
 		fmt.Println("[Stats] Average Sojourn Time (E[T]) (TICKS) =\t", stats.Avg_sojourn.GetAvg())
 		fmt.Println("[Stats] Probability Packet Loss (P_LOSS)    =\t", stats.Probability_loss.GetProportion())
 		fmt.Println("[Stats] Proportion Server Idle (P_IDLE)     =\t", stats.Proportion_idle.GetProportion())
-		fmt.Println("[Stats] Total packets                       =\t", stats.Probability_loss.Total)
+		fmt.Println("[Stats] Total Packets Produced              =\t", stats.Probability_loss.Total)
+		fmt.Println("[Stats] Total Packets Consumed              =\t", stats.Avg_sojourn.Num)
 		fmt.Println("[Stats] Time Simulated (s)                  =\t", TICKS*TICK_time/1000)
+
+		// Averages over M
+		Avg_Avg_packets.AddAvg(stats.Avg_packets.GetAvg())
+		Avg_Avg_sojourn.AddAvg(stats.Avg_sojourn.GetAvg())
+		Avg_Probability_loss.AddAvg(stats.Probability_loss.GetProportion())
+		Avg_Proportion_idle.AddAvg(stats.Proportion_idle.GetProportion())
+
+		Avg_total_packets.AddAvg(stats.Probability_loss.Total)
+		Avg_elapsed_time.AddAvg(tsince.Seconds()) //in seconds
 	}
 }
 

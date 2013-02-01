@@ -26,6 +26,12 @@ var (
 func Init(l *log.Logger) {
 	logger = l
 	logger.Println("[Stats] Started")
+
+	//clear values
+	Avg_packets.Clear()
+	Avg_sojourn.Clear()
+	Proportion_idle.Clear()
+	Probability_loss.Clear()
 }
 
 // Helper functions
@@ -42,11 +48,16 @@ func (a *Avg) AddAvg(add float64) {
 	a.Num++
 }
 
+func (a *Avg) Clear() {
+	a.Total = 0
+	a.Num = 0
+}
+
 func (p Pro) GetProportion() float64 {
 	if p.Total == 0 {
 		return 0
 	}
-	return float64(p.Less) / float64(p.Total)
+	return p.Less / p.Total
 }
 
 func (p *Pro) AddOne() {
@@ -54,6 +65,11 @@ func (p *Pro) AddOne() {
 	p.Less++
 }
 
+func (p *Pro) Clear() {
+	p.Total = 0
+	p.Less = 0
+}
+
 func (p Packet) SojournTime() float64 {
-	return float64(p.Finished - p.Generated)
+	return p.Finished - p.Generated
 }
