@@ -19,7 +19,7 @@ func main() {
 	for i := 0; i < incr_to; i++ {
 		for _, k := range K {
 			bob++
-			s = fmt.Sprintf("5,6e8,1e-3,%d,2000,1.00E+06,%d\n", (lambda + i*incr), k)
+			s = fmt.Sprintf("5,6e9,1e-3,%d,2000,1.00E+06,%d\n", (lambda + i*incr), k)
 			write_to_file(bob, header, s)
 		}
 	}

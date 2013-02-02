@@ -1,2 +1,2 @@
 M,TICKS,TICK Time (1 TICK = X milliseconds),Lambda,L (bits),C (bits per sec),K (zero = infinity)
-5,6e8,1e-3,700,2000,1.00E+06,50
+5,6e9,1e-3,700,2000,1.00E+06,50
