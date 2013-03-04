@@ -1,0 +1,49 @@
+* No prop delay
+* * Collisions can only occur if trying to send at the same time
+* 'Computers' are thread based, thus can sense and send at the exact same time
+* When sending a frame, send the entire packet of L bits
+
+
+LAN API - just functions:
+* put_packet(Packet *p) boolean
+* * Puts the packet on the line, and sets the busy flag to true
+* * calls the wait_and_send(...) to actually put the packet on the line
+* * make sure to check that the busy flag is not already set
+* sense_line() boolean
+* * return busy flag
+* send_jam_signal()
+* * Force busy flag to true
+* wait_and_send(Packet *p, int64 L, float64 W) boolean
+* * internal use only - by put_packet
+* * waits (Time.Sleep) for L/W seconds (convert to ticks)
+* * push to bucket (lookup bucket API)
+* * set busy flag to false
+
+Bucket API - just functions:
+* accept_packet(Packet *p)
+* * does the stats on the packet and stores the results
+* reset()
+* * gets ready for the next N value
+* init(int64 N, ..........)
+
+Computer - class with functions:
+* init(A, L, W, LAN)
+* gen_packet(float64 A)
+* * generate a packet in accordance to A packets per seconds (Poisson distribution)
+* * Send to queue (channel)
+* CSMA_protocol(Packet *p)
+* * follows the CSMA/CD protocol for the LAN
+* * Wait on the packet channel
+
+Main - the main program:
+* Accept the variables: A, W, L
+* Accept all variables need for dicrete event simulator
+* Accept the Variable: N_start, N_end, N_step
+* Loop over N (i=N_start; i<= N_end; i += N_step)
+* * setup the buket and the computers, etc
+* * loop over TICK=1->TICKS
+* * * loop over comp_i=1->COMPS
+* * * * call comp_i->gen_packet(TICK)
+* * * * call comp_i->send_packet(TICK)
+* * Save results for this N
+* Generate graphs
