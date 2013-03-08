@@ -8,6 +8,22 @@ import (
 	"time"
 )
 
+const (
+	STATE_START = 0
+	STATE_MEDIUM_SENSING
+	STATE_STANDARD_WAIT
+	STATE_TRANSMIT_FRAME
+	STATE_JAMMING_SIGNAL
+	STATE_EXP_BACKOFF
+	STATE_EXP_WAIT
+	STATE_ERROR_SEND
+	STATE_SUCCESS_SEND
+)
+
+type StateMachine struct {
+	state int
+}
+
 type CSMA struct {
 	qm          stats.QueueMgr
 	logger      *log.Logger
@@ -15,6 +31,8 @@ type CSMA struct {
 	curTick     float64
 	lambda      float64
 	time_2_tick float64 //1 tick = X milliseconds
+
+	state StateMachine
 }
 
 func (CSMA *csma) Init(l *log.Logger, _lambda float64, TICK_time float64) {
@@ -23,6 +41,7 @@ func (CSMA *csma) Init(l *log.Logger, _lambda float64, TICK_time float64) {
 	csma.qm = stats.QueueMgr
 	csma.time_2_tick = TICK_time
 	csma.nextTick = 1
+	csma.state.state = STATE_START
 
 	logger.Println("[Producer] Started")
 
@@ -31,10 +50,17 @@ func (CSMA *csma) Init(l *log.Logger, _lambda float64, TICK_time float64) {
 
 func (CSMA *csma) Tick(t float64) {
 	csma.curTick = t
-	if t == nextTick {
-		producePacket()
-		getExpRandNum()
-		//logger.Println("[Producer] Next Tick", nextTick)
+
+	switch csma.state.state {
+	case STATE_START:
+
+	case STATE_MEDIUM_SENSING:
+	case STATE_STANDARD_WAIT:
+	case STATE_TRANSMIT_FRAME:
+	case STATE_JAMMING_SIGNAL:
+	case STATE_EXP_BACKOFF:
+	case STATE_ERROR_SEND:
+	case STATE_SUCCESS_SEND:
 	}
 }
 
