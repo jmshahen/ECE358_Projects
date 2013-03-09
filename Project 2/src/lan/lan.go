@@ -25,6 +25,9 @@ type LAN struct {
 
 	node_info []Packet_Arrival			// The Packet_Arrival struct for each computer.
 										// Each element correspnds to a computer.
+	bucket 					*stats.Bucket
+	lost_bucket				*stats.Bucket
+
 
 }
 
@@ -32,7 +35,7 @@ type LAN struct {
 // Creates the two slices: sense_flags, node_info each with length equal to the number of computers
 // Initializes all relevant input variables.
 
-func (LAN *lan) Init(n int64, prop_t int64, pack_t int64, jam_t int64 64) {
+func (LAN *lan) Init(n int64, prop_t int64, pack_t int64, jam_t int64 64, b *stats.Bucket, l_b *stats.Bucket) {
 
 
 	lan.sense_flags = make([]bool, N, N)
@@ -43,7 +46,12 @@ func (LAN *lan) Init(n int64, prop_t int64, pack_t int64, jam_t int64 64) {
 	lan.Packet_Trans_Ticks = pack_t
 	lan.Jam_Trans_Ticks = jam_t;
 
+	lan.bucket = b
+	lan.lost_bucket = l_b
+
 }
+
+
 
 // For each "computer" check if the current tick is betweeen the start and end times of 
 // when a packet is arriving at that node.
@@ -69,6 +77,10 @@ func (LAN *lan) Complete_Tick(t int64) {
 
 // pushes the packet to the bucket.
 func (LAN *lan) push_to_bucket(p *stats.Packet)
+{
+}
+
+func (LAN *lan) record_lost_packet(compID int64, packet *stats.Packet)
 {
 }
 
