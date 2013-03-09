@@ -85,6 +85,7 @@ func (CSMA *csma) Tick(t int64) {
 		i = 0
 		if csma.qm.Size != 0 {
 			csma.packet = csma.qm.Pop()
+			csma.packet.ExitQueue = t
 			csma.state.state = STATE_MEDIUM_SENSING_INIT
 		}
 	case STATE_MEDIUM_SENSING_INIT:

@@ -17,20 +17,30 @@ type Pro struct {
 type Bucket struct {
 	logger *log.Logger
 	// Stats
-	throughput float64
-	packet_len int64
-	packets    QueueMgr
+	Avg_Full_Delay           Avg
+	Avg_Full_Delay_per_Comp  []Avg
+	Avg_Queue_Delay          Avg
+	Avg_Queue_Delay_per_Comp []Avg
+	Avg_CSMA_Delay           Avg
+	Avg_CSMA_Delay_per_Comp  []Avg
+	packet_len               int64
+	Packets                  QueueMgr
 }
 
-func (Bucket *b) Init(l *log.Logger, packet_len int64) {
+func (Bucket *b) Init(l *log.Logger, packet_len int64, num_comps int64) {
 	b.logger = l
 	b.logger.Println("[Stats] Started")
+	b.Avg_Delay_per_Comp = make([]Avg, N, N)
 
 	b.packet_len = packet_len
 }
 
 func (Bucket *b) Throughput(total_ticks int64) float64 {
-	return float64(b.packets.Size) * float64(b.packet_len) / float64(total_ticks)
+	return float64(b.Packets.Size) * float64(b.packet_len) / float64(total_ticks)
+}
+
+func (Bucket *b) Accept_packet(p *Packet) {
+	//calculate delay
 }
 
 // Helper functions
