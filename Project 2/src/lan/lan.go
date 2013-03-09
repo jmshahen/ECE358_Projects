@@ -99,7 +99,7 @@ func (LAN *lan) sense_line(compID float64) bool {
 // We always use the greater of Packet_Arrival.End and our calculated End.
 // We only change the Packet_Arrival.Start field if it is 0.
 // If it is not zero then this means that it has to be less than our calculated start, and we should not replace it.
-func (LAN *lan) put_packet(p *Packet, compID float64, Current_Tick float64) bool {
+func (LAN *lan) put_packet(p *Packet, compID float64, Current_Tick float64) float64 {
 
 	Start := Current_Tick + lan.Prop_Ticks
 	End := Start + lan.Packet_Trans_Ticks
@@ -115,6 +115,7 @@ func (LAN *lan) put_packet(p *Packet, compID float64, Current_Tick float64) bool
 			}
 		}
 	}
+	return lan.Packet_Trans_Ticks
 }
 
 // Has similar functionality to put_packet, except there is no actual packet to keep track of, only a jam signal.
@@ -122,7 +123,7 @@ func (LAN *lan) put_packet(p *Packet, compID float64, Current_Tick float64) bool
 // 		current tick + Jam_Trans_Ticks + Jam_Prop_Ticks;
 // This is because if a computer is sending a jam signal, then once it arrives at other nodes, they stop transmitting packets.
 // At this point, only Jam signals will be on the line. Once the last Jam signal has fully arrived, the line has to be open. 
-func (LAN *lan) send_jam_signal(compID float64, Current_Tick float64) bool {
+func (LAN *lan) send_jam_signal(compID float64, Current_Tick float64) float64 {
 
 	Start := Current_Tick + lan.Prop_Ticks;
 	End := Start + lan.Jam_Trans_Ticks;
@@ -136,6 +137,7 @@ func (LAN *lan) send_jam_signal(compID float64, Current_Tick float64) bool {
 			}
 		}
 	}
+	return lan.Packet_Prop_Ticks
 }
 
 
