@@ -14,24 +14,23 @@ type Pro struct {
 	Total float64
 }
 
-var (
+type Bucket struct {
 	logger *log.Logger
 	// Stats
-	Avg_packets      Avg // E[N]
-	Avg_sojourn      Avg // E[T]
-	Proportion_idle  Pro // P_IDLE
-	Probability_loss Pro // P_LOSS
-)
+	throughput float64
+	packet_len int64
+	packets    QueueMgr
+}
 
-func Init(l *log.Logger) {
-	logger = l
-	logger.Println("[Stats] Started")
+func (Bucket *b) Init(l *log.Logger, packet_len int64) {
+	b.logger = l
+	b.logger.Println("[Stats] Started")
 
-	//clear values
-	Avg_packets.Clear()
-	Avg_sojourn.Clear()
-	Proportion_idle.Clear()
-	Probability_loss.Clear()
+	b.packet_len = packet_len
+}
+
+func (Bucket *b) Throughput(total_ticks int64) float64 {
+	return float64(b.packets.Size) * float64(b.packet_len) / float64(total_ticks)
 }
 
 // Helper functions

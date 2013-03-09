@@ -15,6 +15,7 @@ type Packet_Arrival struct {
 
 type LAN struct {
 
+
 	num_comps 		 		int64 	// Number of computers  connected tot he LAN	
 	Prop_Ticks				int64
 	Packer_Trans_Ticks		int64
@@ -27,13 +28,12 @@ type LAN struct {
 										// Each element correspnds to a computer.
 	bucket 					*stats.Bucket
 	lost_bucket				*stats.Bucket
-
-
 }
 
 
 // Creates the two slices: sense_flags, node_info each with length equal to the number of computers
 // Initializes all relevant input variables.
+
 
 func (LAN *lan) Init(n int64, prop_t int64, pack_t int64, jam_t int64 64, b *stats.Bucket, l_b *stats.Bucket) {
 
@@ -48,6 +48,7 @@ func (LAN *lan) Init(n int64, prop_t int64, pack_t int64, jam_t int64 64, b *sta
 
 	lan.bucket = b
 	lan.lost_bucket = l_b
+
 
 }
 
@@ -116,7 +117,6 @@ func (LAN *lan) sense_line(compID int64) bool {
 // We only change the Packet_Arrival.Start field if it is 0.
 // If it is not zero then this means that it has to be less than our calculated start, and we should not replace it.
 func (LAN *lan) put_packet(p *Packet, compID int64, Current_Tick int64) int64 {
-
 	Start := Current_Tick + lan.Prop_Ticks
 	End := Start + lan.Packet_Trans_Ticks
 
