@@ -13,14 +13,12 @@ type Packet_Arrival struct {
 	p 		*stats.Packet  
 }
 
-var (
+type LAN struct {
 
-	TICK_time 	float64 // 1 TICK = X milliseconds
-
-	num_comps 		 	float64 // Number of computers  connected tot he LAN
-	packets_per_sec 	float64 // Number of packets/sec
-	W		  			float64 // The speed of the lan in bits/msec
-	L         			float64 // Length of a packet in bits
+	num_comps 		 		float64 	// Number of computers  connected tot he LAN	
+	Prop_Ticks				float64
+	Packer_Trans_Ticks		float64
+	Jam_Trans_Ticks			float64
 
 	sense_flags 	[]bool				// Flags of whether or not data is arrive at that node during the current tick.
 										// Each element correspnds to a computer. Ie: comp0  is at element 0, comp1 and element 1.
@@ -28,30 +26,22 @@ var (
 	node_info []Packet_Arrival			// The Packet_Arrival struct for each computer.
 										// Each element correspnds to a computer.
 
-	Prop_Ticks				float64
-	Packer_Trans_Ticks		float64
-	Jam_Trans_Ticks			float64
-)	
-
+}
 
 
 // Creates the two slices: sense_flags, node_info each with length equal to the number of computers
 // Initializes all relevant input variables.
 
-func Init(tick_t float64, n float64, a float64, w float64, l float64) {
-	TICK_time = tick_t;
-	num_comps = n;
-	packets_per_sec = a;
-	W = w;
-	L = l;
+func (LAN *lan) Init(n float64, prop_t float64, pack_t float64, jam_t float 64) {
 
-	sense_flags = make([]bool, N, N)
-	node_info = make([]Packet_Arrival, N, N)
 
-	// will be calculated, not hard coded.
-	Prop_Ticks = 10
-	Packet_Trans_Ticks = 100
-	Jam_Trans_Ticks = 50
+	lan.sense_flags = make([]bool, N, N)
+	lan.node_info = make([]Packet_Arrival, N, N)
+
+	lan.num_comps = n;
+	lan.Prop_Ticks = prop_t
+	lan.Packet_Trans_Ticks = pack_t
+	lan.Jam_Trans_Ticks = jam_t;
 
 }
 
@@ -59,34 +49,32 @@ func Init(tick_t float64, n float64, a float64, w float64, l float64) {
 // when a packet is arriving at that node.
 // If it is between them, sense_flags for that node becomes true.
 // If t = the End time, then the packet has just fully arrived and sense_flags = false. THe packet_arrival struct is also cleared.
-func Complete_Tick(t float64) {
-	for i:= 0; i < num_comps; i++ {
+func (LAN *lan) Complete_Tick(t float64) {
+	for i:= 0; i < lan.num_comps; i++ {
 		// Packet is currently arriving at this node
-		if t >= node_info[i].Start && t < node_info[i].End {
-			sense_flags[i] = true
+		if t >= lan.node_info[i].Start && t < lan.node_info[i].End {
+			lan.sense_flags[i] = true
 		}
 		// packet has just fully arrived at this node.
 		// clear Packet_Arrival struct.
-		if t == node_info[i].End {
-			sense_flags[i] = false
-			node_info[i].Start = 0
-			node_info[i].End = 0
-			push_to_bucket(node_info[i].p)
-			node_info[i].p = nil
+		if t == lan.node_info[i].End {
+			lan.sense_flags[i] = false
+			lan.node_info[i].Start = 0
+			lan.node_info[i].End = 0
+			lan.push_to_bucket(node_info[i].p)
+			lan.node_info[i].p = nil
 		}
-
 	}
 }
 
 // pushes the packet to the bucket.
-func push_to_bucket(p *stats.Packet)
+func (LAN *lan) push_to_bucket(p *stats.Packet)
 {
-
 }
 
 // returns whether there is currently data arriving at the specified computer.
-func sense_line(compID float64) bool {
-	return sense_flags[compID];
+func (LAN *lan) sense_line(compID float64) bool {
+	return lan.sense_flags[compID];
 }
 
 // Called by a computer to put a packet on the line.
@@ -111,19 +99,19 @@ func sense_line(compID float64) bool {
 // We always use the greater of Packet_Arrival.End and our calculated End.
 // We only change the Packet_Arrival.Start field if it is 0.
 // If it is not zero then this means that it has to be less than our calculated start, and we should not replace it.
-func put_packet(p *Packet, compID float64, Current_Tick float64) bool {
+func (LAN *lan) put_packet(p *Packet, compID float64, Current_Tick float64) bool {
 
-	Start := Current_Tick + Prop_Ticks
-	End := Start + Packet_Trans_Ticks
+	Start := Current_Tick + lan.Prop_Ticks
+	End := Start + lan.Packet_Trans_Ticks
 
-	for i := 0; i < num_comps; i++ {
+	for i := 0; i < lan.num_comps; i++ {
 		if i != compID {
-			if End > node_info[i].End {
-				node_info[i].End = End
-				node_info[i].p = p
+			if End > lan.node_info[i].End {
+				lan.node_info[i].End = End
+				lan.node_info[i].p = p
 			}
-			if node_info[i].Start == 0 {
-				node_info[i].Start = Start
+			if lan.node_info[i].Start == 0 {
+				lan.node_info[i].Start = Start
 			}
 		}
 	}
@@ -134,17 +122,17 @@ func put_packet(p *Packet, compID float64, Current_Tick float64) bool {
 // 		current tick + Jam_Trans_Ticks + Jam_Prop_Ticks;
 // This is because if a computer is sending a jam signal, then once it arrives at other nodes, they stop transmitting packets.
 // At this point, only Jam signals will be on the line. Once the last Jam signal has fully arrived, the line has to be open. 
-func send_jam_signal(compID float64, Current_Tick float64) bool {
+func (LAN *lan) send_jam_signal(compID float64, Current_Tick float64) bool {
 
-	Start := Current_Tick + Prop_Ticks;
-	End := Start + Jam_Trans_Ticks;
+	Start := Current_Tick + lan.Prop_Ticks;
+	End := Start + lan.Jam_Trans_Ticks;
 
-	for i := 0; i < num_comps; i++ {
+	for i := 0; i < lan.num_comps; i++ {
 		if i != compID {
-			node_info[i].End = End
-			node_info[i].p = nil
-			if node_info[i].Start == 0 {
-			    node_info[i].Start = Start
+			lan.node_info[i].End = End
+			lan.node_info[i].p = nil
+			if lan.node_info[i].Start == 0 {
+			    lan.node_info[i].Start = Start
 			}
 		}
 	}
