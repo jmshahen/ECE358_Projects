@@ -79,13 +79,13 @@ func (LAN *lan) Complete_Tick(t int64) {
 func (LAN *lan) push_to_bucket(p *stats.Packet)
 {
 		// record tick packet is sent to bucket
-		lan.bucket.accept_packet(p)
+		lan.bucket.Accept_packet(p)
 }
 
-func (LAN *lan) record_lost_packet(compID int64, packet *stats.Packet)
+func (LAN *lan) record_lost_packet(packet *stats.Packet)
 {
 		// record tick packet is sent to bucket
-		lan.lost_bucket.accept_packet(p)
+		lan.lost_bucket.Accept_packet(packet)
 }
 
 // returns whether there is currently data arriving at the specified computer.
