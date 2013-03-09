@@ -30,9 +30,16 @@ type Bucket struct {
 func (Bucket *b) Init(l *log.Logger, packet_len int64, num_comps int64) {
 	b.logger = l
 	b.logger.Println("[Stats] Started")
-	b.Avg_Delay_per_Comp = make([]Avg, N, N)
+
+	b.Avg_Full_Delay.Clear()
+	b.Avg_Full_Delay_per_Comp = make([]Avg, N, N)
+	b.Avg_Queue_Delay.Clear()
+	b.Avg_Queue_Delay_per_Comp = make([]Avg, N, N)
+	b.Avg_CSMA_Delay.Clear()
+	b.Avg_CSMA_Delay_per_Comp = make([]Avg, N, N)
 
 	b.packet_len = packet_len
+	b.Packets.Clear()
 }
 
 func (Bucket *b) Throughput(total_ticks int64) float64 {
@@ -41,6 +48,19 @@ func (Bucket *b) Throughput(total_ticks int64) float64 {
 
 func (Bucket *b) Accept_packet(p *Packet) {
 	//calculate delay
+	id := p.CompID
+
+	var delay float64 = float64(p.Finished - p.Generated)
+	Avg_Full_Delay.AddAvg(delay)
+	Avg_Full_Delay_per_Comp[id].AddAvg(delay)
+
+	delay = float64(p.ExitQueue - p.Generated)
+	Avg_Queue_Delay.AddAvg(delay)
+	Avg_Queue_Delay_per_Comp[id].AddAvg(delay)
+
+	delay = float64(p.Finished - p.ExitQueue)
+	Avg_CSMA_Delay.AddAvg(delay)
+	Avg_CSMA_Delay_per_Comp[id].AddAvg(delay)
 }
 
 // Helper functions
