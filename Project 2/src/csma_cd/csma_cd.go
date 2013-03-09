@@ -97,6 +97,8 @@ func (CSMA *csma) Tick(t int64) {
 			csma.waitFor = t + csma.tp
 			csma.state.state = STATE_STANDARD_WAIT
 		} else if csma.waitFor == t {
+			//ready to send file
+			csma.waitFor = t + csma.lan.put_packet(csma.packet, csma.id, t)
 			csma.state.state = STATE_TRANSMIT_FRAME
 		}
 	case STATE_STANDARD_WAIT:
