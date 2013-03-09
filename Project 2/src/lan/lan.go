@@ -17,21 +17,20 @@ var (
 
 	TICK_time 	float64 // 1 TICK = X milliseconds
 
-	N 		 	float64 // Number of computers  connected tot he LAN
-	A 		  	float64 // Number of packets/sec
-	W		  	float64 // The speed of the lan in bits/msec
-	L         	float64 // Length of a packet in bits
+	num_comps 		 	float64 // Number of computers  connected tot he LAN
+	packets_per_sec 	float64 // Number of packets/sec
+	W		  			float64 // The speed of the lan in bits/msec
+	L         			float64 // Length of a packet in bits
 
-	sense_flags 	[]bool;				// Flags of whether or not data is arrive at that node during the current tick.
+	sense_flags 	[]bool				// Flags of whether or not data is arrive at that node during the current tick.
 										// Each element correspnds to a computer. Ie: comp0  is at element 0, comp1 and element 1.
 
-	node_info []Packet_Arrival;			// The Packet_Arrival struct for each computer.
+	node_info []Packet_Arrival			// The Packet_Arrival struct for each computer.
 										// Each element correspnds to a computer.
 
-	Packet_Prop_Ticks		float64;
-	Packer_Trans_Ticks		float64;
-	Jam_Prop_Ticks			float64;
-	Jam_Trans_Ticks			float64;
+	Prop_Ticks				float64
+	Packer_Trans_Ticks		float64
+	Jam_Trans_Ticks			float64
 )	
 
 
@@ -41,19 +40,18 @@ var (
 
 func Init(tick_t float64, n float64, a float64, w float64, l float64) {
 	TICK_time = tick_t;
-	N = n;
-	A = a;
+	num_comps = n;
+	packets_per_sec = a;
 	W = w;
 	L = l;
 
-	sense_flags = make([]bool, N, N);
-	node_info = make([]Packet_Arrival, N, N);
+	sense_flags = make([]bool, N, N)
+	node_info = make([]Packet_Arrival, N, N)
 
 	// will be calculated, not hard coded.
-	Packet_Prop_Ticks = 10;
-	Packet_Trans_Ticks = 100;
-	Jam_Prop_Ticks = 10;
-	Jam_Trans_Ticks = 50;
+	Prop_Ticks = 10
+	Packet_Trans_Ticks = 100
+	Jam_Trans_Ticks = 50
 
 }
 
@@ -62,19 +60,19 @@ func Init(tick_t float64, n float64, a float64, w float64, l float64) {
 // If it is between them, sense_flags for that node becomes true.
 // If t = the End time, then the packet has just fully arrived and sense_flags = false. THe packet_arrival struct is also cleared.
 func Complete_Tick(t float64) {
-	for i:= 0; i < N; i++ {
+	for i:= 0; i < num_comps; i++ {
 		// Packet is currently arriving at this node
 		if t >= node_info[i].Start && t < node_info[i].End {
-			sense_flags[i] = true;
+			sense_flags[i] = true
 		}
 		// packet has just fully arrived at this node.
 		// clear Packet_Arrival struct.
 		if t == node_info[i].End {
-			sense_flags[i] = false;
-			node_info[i].Start = 0;
-			node_info[i].End = 0;
-			push_to_bucket(node_info[i].p);
-			node_info[i].p = nil;
+			sense_flags[i] = false
+			node_info[i].Start = 0
+			node_info[i].End = 0
+			push_to_bucket(node_info[i].p)
+			node_info[i].p = nil
 		}
 
 	}
@@ -115,17 +113,17 @@ func sense_line(compID float64) bool {
 // If it is not zero then this means that it has to be less than our calculated start, and we should not replace it.
 func put_packet(p *Packet, compID float64, Current_Tick float64) bool {
 
-	Start := Current_Tick + Packet_Prop_Ticks;
-	End := Start + Packet_Trans_Ticks;
+	Start := Current_Tick + Prop_Ticks
+	End := Start + Packet_Trans_Ticks
 
-	for i := 0; i < N; i++ {
+	for i := 0; i < num_comps; i++ {
 		if i != compID {
 			if End > node_info[i].End {
-				node_info[i].End = End;
-				node_info[i].p = p;
+				node_info[i].End = End
+				node_info[i].p = p
 			}
 			if node_info[i].Start == 0 {
-				node_info[i].Start = Start;
+				node_info[i].Start = Start
 			}
 		}
 	}
@@ -138,15 +136,15 @@ func put_packet(p *Packet, compID float64, Current_Tick float64) bool {
 // At this point, only Jam signals will be on the line. Once the last Jam signal has fully arrived, the line has to be open. 
 func send_jam_signal(compID float64, Current_Tick float64) bool {
 
-	Start := Current_Tick + Jam_Prop_Ticks;
+	Start := Current_Tick + Prop_Ticks;
 	End := Start + Jam_Trans_Ticks;
 
-	for i := 0; i < N; i++ {
+	for i := 0; i < num_comps; i++ {
 		if i != compID {
-			node_info[i].End = End;
-			node_info[i].p = nil;
+			node_info[i].End = End
+			node_info[i].p = nil
 			if node_info[i].Start == 0 {
-			    node_info[i].Start = Start;
+			    node_info[i].Start = Start
 			}
 		}
 	}
