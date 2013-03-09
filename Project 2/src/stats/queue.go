@@ -18,6 +18,7 @@ type QueueItem struct {
 }
 
 type Packet struct {
+	CompID    int64
 	Generated float64
 	Finished  float64
 }

@@ -140,7 +140,7 @@ func (CSMA *csma) Tick(t int64) {
 }
 
 func (CSMA *csma) producePacket() {
-	var p = stats.Packet{csma.curTick, 0}
+	var p = stats.Packet{csma.id, csma.curTick, 0}
 	if err := csma.qm.Push(p); err != nil {
 		//logger.Printf("[Producer] Received Error %v\n", err)
 	}
