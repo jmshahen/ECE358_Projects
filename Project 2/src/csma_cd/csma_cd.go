@@ -33,7 +33,7 @@ type CSMA struct {
 	nextTick    float64
 	curTick     float64
 	lambda      float64
-	time_2_tick float64 //1 tick = X milliseconds
+	time_2_tick float64 //1 tick = X nanoseconds
 	lan         *lan.LAN
 
 	state             StateMachine
@@ -113,6 +113,7 @@ func (CSMA *csma) Tick(t int64) {
 			csma.waitFor = t + csma.lan.send_jam_signal(csma.id, t)
 			csma.state.state = STATE_JAMMING_SIGNAL
 		} else if csma.waitFor == t {
+			//done waiting
 			csma.state.state = STATE_SUCCESS_SEND
 		}
 	case STATE_JAMMING_SIGNAL:
@@ -154,10 +155,15 @@ func (CSMA *csma) getExpRandNum() {
 	a := 1 - rand.Float64()
 	b := math.Log(a)
 	c := (-1 / csma.lambda)
-	d := b * c * 1000 // in milliseconds
-	ans := d / float64(csma.time_2_tick)
+	d := b * c                              // sec / packet
+	ans := sec_to_tick(d, csma.time_2_tick) // tick / packet
 
-	csma.nextTick = csma.curTick + math.Ceil(ans)
+	csma.nextTick = csma.curTick + ans
+}
+
+//convert seconds into ticks
+func sec_to_tick(s float64, TICK_time int64) int64 {
+	return int64(math.ceil((s * 1e9) / float64(TICK_time)))
 }
 
 //The exponential backoff wait time, when a collision is detected
