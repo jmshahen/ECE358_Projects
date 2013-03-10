@@ -194,11 +194,11 @@ func write_csv_output(num_comps int64) {
 	rec[i] = strconv.FormatFloat(W, 'f', -1, 64)
 	i++
 
-	rec[i] = strconv.FormatFloat(Avg_Avg_Full_Delay.GetAvg(), 'f', -1, 64)
+	rec[i] = strconv.FormatFloat(Avg_Full_Delay.GetAvg(), 'f', -1, 64)
 	i++
-	rec[i] = strconv.FormatFloat(Avg_Avg_Queue_Delay_per_Comp.GetAvg(), 'f', -1, 64)
+	rec[i] = strconv.FormatFloat(Avg_Queue_Delay_per_Comp.GetAvg(), 'f', -1, 64)
 	i++
-	rec[i] = strconv.FormatFloat(Avg_Avg_CSMA_Delay_per_Comp.GetAvg(), 'f', -1, 64)
+	rec[i] = strconv.FormatFloat(Avg_CSMA_Delay_per_Comp.GetAvg(), 'f', -1, 64)
 	i++
 	rec[i] = strconv.FormatFloat(Avg_throughput.GetAvg(), 'f', -1, 64)
 	i++
