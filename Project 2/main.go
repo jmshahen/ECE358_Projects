@@ -94,11 +94,12 @@ func main() {
 			
 			Sum_throughput += bucket.Throughput()
 
-			for a := range Avg_Avg_Full_Delay_per_Comp {
+			// Probably only needed for testing.
+/*			for a := range Avg_Avg_Full_Delay_per_Comp {
 				Avg_Avg_Full_Delay_per_Comp[a].AddAvg(bucket.Avg_Full_Delay_per_Comp[a].GetAvg())
 				Avg_Avg_Queue_Delay_per_Comp[a].AddAvg(bucket.Avg_Queue_Delay_per_Comp[a].GetAvg())
 				Avg_Avg_CSMA_Delay_per_Comp[a].AddAvg(bucket.Avg_CSMA_Delay_per_Comp[a].GetAvg())
-			}
+			}*/
 			// end compute stats
 		}
 		Avg_throughput = (Sum_throughput / m)
