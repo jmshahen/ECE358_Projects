@@ -2,31 +2,65 @@ package main
 
 import (
 	"csv"
+	"io"
+	"math"
 	"os"
 )
 
 func get_variables() {
 
-	/*
-		Accept the variables: A, W, L
-		Accept all variables need for dicrete event simulator
-		Accept the Variable: N_start, N_end, N_step
-	*/
+	// set up the logger to point to stdout
+	logger = log.New(os.Stdout, "[ECE358 P2] ", log.LstdFlags)
 
+	/**************************************************************************/
 	// Get Variables
+
 	if len(os.Args) == 2 {
 		get_args_params()
 	} else {
 		logger.Fatalln("Only a CSV file is premitted as commandline arguments")
 	}
+
 	// End of Get Variables
 
+	/**************************************************************************/
 	// Set Variables
-	Prop_ticks = (length_of_line / speed_over_line) * 1e9 / TICK_time // 100 m/s divided by propagation speed. converted to nano secounds, converted to ticks.
-	Packet_trans_ticks = (L / W) * 1e9 / TICK_time                    // packet length divided by trans speed. converted to nano secounds, converted to ticks
-	Jam_trans_ticks = (jam_signal_length / W) * 1e9 / TICK_time       // Jam length divided by trans speed. converted to nano secounds, converted to ticks
+
+	tp = bit_time_to_ticks(tp)
+	medium_sense_time = bit_time_to_ticks(medium_sense_time)
+
+	Prop_ticks = sec_to_tick(length_of_line / speed_over_line)
+	Packet_trans_ticks = sec_to_tick(L / W)
+	Jam_trans_ticks = sec_to_tick(jam_signal_length / W)
+
 	// End of Set Variables
 
+	// Display Variables
+	// Display Variables
+	fmt.Println("\nVariables being used:")
+	fmt.Println("\t M               ", M)
+	fmt.Println("\t TICKS           ", TICKS)
+	fmt.Println("\t TICK_time       ", TICK_time, "nanoseconds / tick")
+	fmt.Println("\t ---")
+	fmt.Println("\t N_start         ", N_start)
+	fmt.Println("\t N_end           ", N_end)
+	fmt.Println("\t N_step          ", N_step)
+	fmt.Println("\t ---")
+	fmt.Println("\t A               ", A, "pcks/sec")
+	fmt.Println("\t W               ", W, "bits/sec")
+	fmt.Println("\t L               ", L, "bits")
+	fmt.Println("\t ---")
+	fmt.Println("\t kmax            ", kmax)
+	fmt.Println("\t tp              ", tp, "ticks")
+	fmt.Println("\t m_sense         ", medium_sense_time, "ticks")
+	fmt.Println("\t ---")
+	fmt.Println("\t jam_sig         ", jam_signal_length, "bits")
+	fmt.Println("\t line            ", length_of_line, "meters")
+	fmt.Println("\t e_speed         ", speed_over_line, "meters / sec")
+	fmt.Println("\t ---")
+	fmt.Println("\t prop_d          ", Prop_ticks, "ticks")
+	fmt.Println("\t trans_d         ", Packet_trans_ticks, "ticks")
+	fmt.Println("\t jam_d           ", Jam_trans_ticks, "ticks")
 }
 
 func get_args_params() {
@@ -52,17 +86,49 @@ func get_args_params() {
 		logger.Fatalf("Error:", err)
 	}
 
-	get_int64_csv(rec[0], &M)
-	get_int64_csv(rec[1], &TICKS)
-	get_float64_csv(rec[2], &TICK_time)
+	i := 0
+	get_int64_csv(rec[i], &M)
+	i++
+	get_int64_csv(rec[i], &TICKS)
+	i++
+	get_float64_csv(rec[i], &TICK_time)
+	i++
 
-	get_int64_csv(rec[3], &N_start)
-	get_int64_csv(rec[3], &N_end)
-	get_int64_csv(rec[3], &N_step)
+	get_int64_csv(rec[i], &N_start)
+	i++
+	get_int64_csv(rec[i], &N_end)
+	i++
+	get_int64_csv(rec[i], &N_step)
+	i++
 
-	get_int64_csv(rec[4], &A)
-	get_int64_csv(rec[5], &W)
-	get_int64_csv(rec[6], &L)
+	get_float64_csv(rec[i], &A)
+	i++
+	get_float64_csv(rec[i], &W) //in bits per second
+	i++
+	get_int64_csv(rec[i], &L)
+	i++
+
+	get_int64_csv(rec[i], &kmax)
+	i++
+	get_int64_csv(rec[i], &tp) //bit times
+	i++
+	get_int64_csv(rec[i], &medium_sense_time) //bit times
+	i++
+
+	get_int64_csv(rec[i], &jam_signal_length) //bits
+	i++
+	get_float64_csv(rec[i], &length_of_line) //in meters
+	i++
+	get_float64_csv(rec[i], &speed_over_line) //in meters per second
+	i++
+}
+
+func bit_time_to_ticks(v int64) int64 {
+	return sec_to_tick(float64(v) / W)
+}
+
+func sec_to_tick(s float64) int64 {
+	return int64(math.ceil((s * 1e9) / float64(TICK_time)))
 }
 
 func get_float64_csv(r string, b *float64) {
