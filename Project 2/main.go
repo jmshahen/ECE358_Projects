@@ -67,6 +67,7 @@ func main() {
 	var tsince time.Duration
 	for i := N_start; i < N_End; i+=N_step {
 
+		// run M times for each i value.
 		for m := 1.0; m <= M; m++ {
 			// initilize components
 			bucket.Init(logger, L, i)
@@ -86,8 +87,11 @@ func main() {
 
 			// compute stats
 			Avg_Avg_Full_Delay.AddAvg(bucket.Avg_Full_Delay.GetAvg())
+
 			Avg_Avg_Queue_Delay.AddAvg(bucket.Avg_Queue_Delay.GetAvg())
+
 			Avg_Avg_CSMA_Delay.AddAvg(bucket.Avg_CSMA_Delay.GetAvg())
+			
 			Sum_throughput += bucket.Throughput()
 
 			for a := range Avg_Avg_Full_Delay_per_Comp {
@@ -99,6 +103,13 @@ func main() {
 		}
 		Avg_throughput = (Sum_throughput / m)
 		write_csv_output(i)
+
+		// clear stats.
+		Avg_Avg_Full_Delay.Clear()
+		Avg_Avg_Queue_Delay.Clear()
+		Avg_Avg_CSMA_Delay.Clear()
+		Sum_throughput = 0
+
 	}
 
 }
