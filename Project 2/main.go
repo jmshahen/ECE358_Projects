@@ -18,10 +18,10 @@ var (
 	W                      float64 // The speed of the lan in bits/sec
 	L                      int64   // Length of a packet in bits
 
-	lan         *lan.LAN
-	cmsa        *csma_cd.CSMA
-	bucket      *stats.Bucket
-	lost_bucket *stats.Bucket
+	lan         lan.LAN
+	cmsa        csma_cd.CSMA
+	bucket      stats.Bucket
+	lost_bucket stats.Bucket
 
 	length_of_line    float64 //in meters
 	speed_over_line   float64 //in meters per sec
@@ -47,8 +47,8 @@ var (
     Avg_Avg_CSMA_Delay           	stats.Avg
     Avg_Avg_CSMA_Delay_per_Comp  	[]stats.Avg
 
-    Sum_throughput					float64
-    Avg_throughput					float64
+
+    Avg_throughput					stats.Avg
 
     csv_cols int = 11
 )
@@ -62,15 +62,16 @@ func main() {
 	fmt.Println("\tJon Shahen    \t(20334465)")
 	fmt.Println("\tKevin Carlton \t(20337152)")
 	fmt.Println("---\n")
-	// End of Header
-	write_csv_header()
 	// gets and sets all global varaibles not dependant on N
 	get_variables()
+
+	// End of Header
+	write_csv_header()
 
 	var test_t time.Time
 	var test_b time.Time = time.Now()
 	var tsince time.Duration
-	for i := N_start; i < N_End; i+=N_step {
+	for i := N_start; i <= N_End; i+=N_step {
 
 		// run M times for each i value.
 		for m := 1.0; m <= M; m++ {
@@ -86,8 +87,8 @@ func main() {
 			for t := 0; t < TICKS; t++ {
 				for c := range computers {
 					computers[c].Tick(t)
-					lan.Complete_Tick(t)
 				}
+				lan.Complete_Tick(t)
 			}
 
 			// compute stats
@@ -97,17 +98,16 @@ func main() {
 
 			Avg_Avg_CSMA_Delay.AddAvg(bucket.Avg_CSMA_Delay.GetAvg())
 			
-			Sum_throughput += bucket.Throughput()
+			Avg_throughput.AddAvg(bucket.Throughput())
 
 			// Probably only needed for testing.
-/*			for a := range Avg_Avg_Full_Delay_per_Comp {
+			for a := range Avg_Avg_Full_Delay_per_Comp {
 				Avg_Avg_Full_Delay_per_Comp[a].AddAvg(bucket.Avg_Full_Delay_per_Comp[a].GetAvg())
 				Avg_Avg_Queue_Delay_per_Comp[a].AddAvg(bucket.Avg_Queue_Delay_per_Comp[a].GetAvg())
 				Avg_Avg_CSMA_Delay_per_Comp[a].AddAvg(bucket.Avg_CSMA_Delay_per_Comp[a].GetAvg())
-			}*/
+			}
 			// end compute stats
 		}
-		Avg_throughput = (Sum_throughput / m)
 		write_csv_output(i)
 
 		// clear stats.
@@ -125,7 +125,7 @@ func init_computers(N int64) {
 	computers = make([]csma_cd.CSMA, N, N)
 
 	for i:= 0; i < N; i++ {
-		computers[].Init(i, lan, logger, A, TICK_time, kmax, tp, medium_sense_time )
+		computers[i].Init(i, lan, logger, A, TICK_time, kmax, tp, medium_sense_time )
 	}
 }
 
@@ -200,7 +200,7 @@ func write_csv_output(num_comps int64) {
 	i++
 	rec[i] = strconv.FormatFloat(Avg_Avg_CSMA_Delay_per_Comp.GetAvg(), 'f', -1, 64)
 	i++
-	rec[i] = strconv.FormatFloat(Avg_Throughput, 'f', -1, 64)
+	rec[i] = strconv.FormatFloat(Avg_throughput.GetAvg(), 'f', -1, 64)
 	i++
 
 	writter.Write(rec)
