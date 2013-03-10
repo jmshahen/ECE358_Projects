@@ -1,8 +1,10 @@
 package main
 
 import (
+	"csma_cd"
 	"fmt"
 	"lan"
+	"stats"
 )
 
 var (
@@ -23,4 +25,43 @@ func main() {
 
 	lan.Init(10, 5, 1000, 1000000, 1500)
 
+}
+
+func get_float64_csv(r string, b *float64) {
+	_, errI := fmt.Sscan(r, b)
+	if errI != nil {
+		logger.Fatalf("converted = %f\n%v\n", b, errI)
+	}
+}
+func get_val(r *bufio.Reader) string {
+	var val, err = r.ReadString('\n')
+	if err != nil {
+		logger.Fatalln("| err:", err)
+	}
+
+	var trimval = strings.TrimRight(val, "\n")
+	if get_int_debug {
+		logger.Println("Val =", val)
+		logger.Println("trimmed =", trimval)
+	}
+
+	return trimval
+}
+
+/*func get_int(r *bufio.Reader, b *int) {
+	var trimval = get_val(r)
+	// valI, errI := strconv.ParseInt(trimval, 10, 32)
+	_, errI := fmt.Sscan(trimval, b)
+	if errI != nil {
+		logger.Fatalf("converted = %d\n%v\n", b, errI)
+	}
+}*/
+
+func get_float64(r *bufio.Reader, b *float64) {
+	var trimval = get_val(r)
+	// valI, errI := strconv.ParseInt(trimval, 10, 32)
+	_, errI := fmt.Sscan(trimval, b)
+	if errI != nil {
+		logger.Fatalf("converted = %f\n%v\n", b, errI)
+	}
 }
