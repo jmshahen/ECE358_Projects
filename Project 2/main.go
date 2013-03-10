@@ -20,21 +20,32 @@ var (
 	bit_time int64 // the bit time. - time it takes to put 1 bit on the line.
 
 
+
 	lan  		*lan.LAN
 	cmsa		*csma_cd.CSMA
 	bucket		*stats.Bucket 
 	lost_bucket	*stats.Bucket
 
+	Prop_ticks 				int64
+	Packet_trans_ticks      int64
+	Jam_trans_ticks			int64
+
+	kmax 					int64
+	tp 						int64
+	medium_sense_time 		int64
+
 )
 
 func main() {
 	//Header
-	fmt.Println("ECE 358 Project 1 - Written in GO (golang.org)")
+	fmt.Println("ECE 358 Project 2 - Written in GO (golang.org)")
 	fmt.Println("Submitted by:")
 	fmt.Println("\tJon Shahen    \t(20334465)")
 	fmt.Println("\tKevin Carlton \t(20337152)")
 	fmt.Println("---\n")
 	// End of Header
+
+}
 
 
 	// Get Variables
@@ -59,14 +70,27 @@ Loop over N (i=N_start; i<= N_end; i += N_step)
 Generate graphs
 */
 
-
 	// Lan init()
-	var Prop_ticks = (100 / 2e8)*1e9 / TICK_time  // 100 m/s divided by propagation speed. converted to nano secounds, converted to ticks.
-	var Packet_trans_ticks = (L/W)*1e9/TICK_time  // packet length divided by trans speed. converted to nano secounds, converted to ticks
-	var Jam_trans_ticks = (45/W)*1e9/TICK_time  // Jam length divided by trans speed. converted to nano secounds, converted to ticks
+	 Prop_ticks = (length_of_line / speed_over_line)*1e9 / TICK_time  // 100 m/s divided by propagation speed. converted to nano secounds, converted to ticks.
+	 Packet_trans_ticks = (L/W)*1e9/TICK_time  // packet length divided by trans speed. converted to nano secounds, converted to ticks
+	 Jam_trans_ticks = (jam_signal_length/W)*1e9/TICK_time  // Jam length divided by trans speed. converted to nano secounds, converted to ticks
 
 	lan.Init(num_comps int64, Prop_ticks int64, Packet_trans_ticks int64, Jam_trans_ticks int64 64, bucket *stats.Bucket, lost_bucket *stats.Bucket)
 	// end lan init()
+
+
+	// csma Init()
+
+		 kmax = 512
+		 tp = 1 //?
+		 medium_sense_time = 96
+
+		   //(id int64, lan *lan.LAN, logger *log.Logger, _lambda float64, TICK_time float64, kmax int64, tp int64, medium_sense_time int64)
+	csma.Init(id int64, lan *lan.LAN, logger *log.Logger, _lambda float64, TICK_time float64, kmax int64, tp int64, medium_sense_time int64)
+	// end csma Init()
+
+
+
 
 }
 
