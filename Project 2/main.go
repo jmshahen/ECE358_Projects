@@ -4,25 +4,28 @@ import (
 	"csma_cd"
 	"fmt"
 	"lan"
+	"log"
 	"stats"
 )
 
 var (
-	M         int64 // number of times to repeat the tests (avg)
-	TICKS     int64 // length of the test
-	TICK_time int64 // 1 TICK = X milliseconds
+	M         int64   // number of times to repeat the tests (avg)
+	TICKS     int64   // length of the test
+	TICK_time float64 // 1 TICK = X nanoseconds
 
-	N_start, N_end, N_step int64 // Number of computers  connected to the LAN
-	A                      int64 // Number of packets/sec
-	W                      int64 // The speed of the lan in bits/sec
-	L                      int64 // Length of a packet in bits
-
-	bit_time int64 // the bit time. - time it takes to put 1 bit on the line.
+	N_start, N_end, N_step int64   // Number of computers  connected to the LAN
+	A                      float64 // Number of packets/sec
+	W                      float64 // The speed of the lan in bits/sec
+	L                      int64   // Length of a packet in bits
 
 	lan         *lan.LAN
 	cmsa        *csma_cd.CSMA
 	bucket      *stats.Bucket
 	lost_bucket *stats.Bucket
+
+	length_of_line    float64 //in meters
+	speed_over_line   float64 //in meters per sec
+	jam_signal_length int64   //in bits
 
 	Prop_ticks         int64
 	Packet_trans_ticks int64
@@ -49,6 +52,8 @@ var (
 
     csv_cols int = 11
 )
+
+var logger *log.Logger
 
 func main() {
 	//Header
