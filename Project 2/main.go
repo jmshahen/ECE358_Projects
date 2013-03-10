@@ -66,7 +66,7 @@ func main() {
 	get_variables()
 
 	// End of Header
-	write_csv_header()
+	write_csv_header(N_End)
 
 	var test_t time.Time
 	var test_b time.Time = time.Now()
@@ -130,14 +130,14 @@ func init_computers(N int64) {
 }
 
 
-func write_csv_header() {
+func write_csv_header(max_comps int64) {
 	_, err := os.Open("test_out.csv")
 	if os.IsNotExist(err) {
 		file, _ := os.Create("test_out.csv")
 		writter := csv.NewWriter(file)
 
 		var i = 0
-		headers := make([]string, csv_cols)
+		headers := make([]string, csv_cols + 4*max_comps)
 		headers[i] = "M"
 		i++
 		headers[i] = "TICKS"
@@ -162,6 +162,18 @@ func write_csv_header() {
 		headers[i] = "Throughtput"
 		i++
 
+		var d = i
+		for c := 0 ; c < max_comps; c++ {
+			headers[d] = "Avg_Full_Delay("+c+")"
+			d++
+			headers[d] = "Avg_Queue_Delay("+c+")"
+			d++
+			headers[d] = "Avg_CSMA_Delay("+c+")"
+			d++
+			headers[d] = "Throughtput("+c+")"
+			d++
+		}
+
 		writter.Write(headers)
 		writter.Flush()
 		file.Close()
@@ -177,7 +189,7 @@ func write_csv_output(num_comps int64) {
 	defer file.Close()
 	writter := csv.NewWriter(file)
 
-	rec := make([]string, csv_cols)
+	rec := make([]string, csv_cols + 4*num_comps)
 	var i = 0
 	rec[i] = strconv.FormatFloat(M, 'f', -1, 64)
 	i++
@@ -202,6 +214,17 @@ func write_csv_output(num_comps int64) {
 	i++
 	rec[i] = strconv.FormatFloat(Avg_throughput.GetAvg(), 'f', -1, 64)
 	i++
+
+	var d = i
+	for c 0 ; c < num_comps; c++ {
+		rec[d] = strconv.FormatFloat(Avg_Avg_Full_Delay_per_Comp[c].GetAvg(), 'f', -1, 64)
+		d++
+		rec[d] = strconv.FormatFloat(Avg_Avg_Full_Delay_per_Comp[c].GetAvg(), 'f', -1, 64)
+		d++
+		rec[d] = strconv.FormatFloat(Avg_Avg_Full_Delay_per_Comp[c].GetAvg(), 'f', -1, 64)
+		// throughput: rec[c+3] = strconv.FormatFloat(Avg_CSMA_Delay_per_Comp.GetAvg(), 'f', -1, 64)
+		d++
+	}
 
 	writter.Write(rec)
 	writter.Flush()
