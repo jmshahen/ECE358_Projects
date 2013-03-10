@@ -57,11 +57,11 @@ func (CSMA *csma) Init(id int64, lan *lan.LAN, logger *log.Logger, _lambda float
 	csma.tp = tp
 	csma.medium_sense_time = medium_sense_time
 
-	csma.qm = stats.QueueMgr
+	csma.qm.Clear()
 	csma.nextTick = -1
 	csma.state.state = STATE_START
 
-	logger.Println("[Producer] Started")
+	logger.Println("[ CSMA /CD ] Started")
 
 	rand.Seed(time.Now().UnixNano())
 }
@@ -77,7 +77,7 @@ func (CSMA *csma) Tick(t int64) {
 			csma.producePacket(t)
 		}
 		csma.getExpRandNum()
-		csma.logger.Println("[Comp", csma.id, "] Next Tick", csma.nextTick)
+		csma.logger.Println("[ Comp", csma.id, "] Next Tick", csma.nextTick)
 	}
 
 	switch csma.state.state {
