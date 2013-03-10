@@ -135,6 +135,7 @@ func (CSMA *csma) Tick(t int64) {
 		csma.state.state = STATE_START
 	case STATE_SUCCESS_SEND:
 		//record successful packet
+		csma.lan.Record_lost_packet(csma.packet, t)
 		csma.logger.Println(csma.id, "Failed to send packet", csma.kmax, "times")
 		csma.state.state = STATE_START
 	}
