@@ -42,6 +42,7 @@ func (Bucket *b) Init(l *log.Logger, packet_len int64, num_comps int64) {
 	b.Packets.Clear()
 }
 
+//returned in: bits / tick (# bits per tick)
 func (Bucket *b) Throughput(total_ticks int64) float64 {
 	return float64(b.Packets.Size) * float64(b.packet_len) / float64(total_ticks)
 }
