@@ -47,7 +47,7 @@ type CSMA struct {
 
 //Variables that are set by calling func at Init:
 //	logger, lambda, time_2_tick, kmax, tp, medium_sense_time
-func (CSMA *csma) Init(id int64, lan *lan.LAN, logger *log.Logger, _lambda float64, TICK_time float64, kmax int64, tp int64, medium_sense_time int64) {
+func (csma *CSMA) Init(id int64, lan *lan.LAN, logger *log.Logger, _lambda float64, TICK_time float64, kmax int64, tp int64, medium_sense_time int64) {
 	csma.id = id
 	csma.logger = logger
 	csma.time_2_tick = TICK_time
@@ -68,7 +68,7 @@ func (CSMA *csma) Init(id int64, lan *lan.LAN, logger *log.Logger, _lambda float
 
 //The main logic for the CSMA Computer
 //producers packets and then enters the CSMA_CD State Machine
-func (CSMA *csma) Tick(t int64) {
+func (csma *CSMA) Tick(t int64) {
 	csma.curTick = t
 
 	//produce packets
@@ -142,7 +142,7 @@ func (CSMA *csma) Tick(t int64) {
 	}
 }
 
-func (CSMA *csma) producePacket() {
+func (csma *CSMA) producePacket() {
 	var p = stats.Packet{csma.id, csma.curTick, 0}
 	if err := csma.qm.Push(p); err != nil {
 		//logger.Printf("[Producer] Received Error %v\n", err)
@@ -151,7 +151,7 @@ func (CSMA *csma) producePacket() {
 }
 
 //Exponentially Random num that will set when the next packet should be produced
-func (CSMA *csma) getExpRandNum() {
+func (csma *CSMA) getExpRandNum() {
 	a := 1 - rand.Float64()
 	b := math.Log(a)
 	c := (-1 / csma.lambda)
@@ -167,6 +167,6 @@ func sec_to_tick(s float64, TICK_time int64) int64 {
 }
 
 //The exponential backoff wait time, when a collision is detected
-func (CSMA *cs) expBackOff() int64 {
+func (csma *CSMA) expBackOff() int64 {
 	return rand.Int31n(2**csma.i-1) * csma.tp
 }

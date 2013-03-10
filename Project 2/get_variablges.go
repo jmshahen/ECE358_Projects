@@ -1,7 +1,7 @@
 package main
 
 import (
-	"csv"
+	"encoding/csv"
 	"io"
 	"math"
 	"os"

@@ -31,7 +31,7 @@ type LAN struct {
 // Creates the two slices: sense_flags, node_info each with length equal to the number of computers
 // Initializes all relevant input variables.
 
-func (LAN *lan) Init(n int64, prop_t int64, pack_t int64, jam_t int64, b *stats.Bucket, l_b *stats.Bucket) {
+func (lan *LAN) Init(n int64, prop_t int64, pack_t int64, jam_t int64, b *stats.Bucket, l_b *stats.Bucket) {
 
 	lan.sense_flags = make([]bool, N, N)
 	lan.node_info = make([]Packet_Arrival, N, N)
@@ -50,7 +50,7 @@ func (LAN *lan) Init(n int64, prop_t int64, pack_t int64, jam_t int64, b *stats.
 // when a packet is arriving at that node.
 // If it is between them, sense_flags for that node becomes true.
 // If t = the End time, then the packet has just fully arrived and sense_flags = false. THe packet_arrival struct is also cleared.
-func (LAN *lan) Complete_Tick(t int64) {
+func (lan *LAN) Complete_Tick(t int64) {
 	for i := 0; i < lan.num_comps; i++ {
 		// Packet is currently arriving at this node
 		if t >= lan.node_info[i].Start && t < lan.node_info[i].End {
@@ -69,18 +69,18 @@ func (LAN *lan) Complete_Tick(t int64) {
 }
 
 // pushes the packet to the bucket.
-func (LAN *lan) push_to_bucket(p *stats.Packet, tick int64) {
+func (lan *LAN) push_to_bucket(p *stats.Packet, tick int64) {
 	p.Finished = tick
 	lan.bucket.Accept_packet(p)
 }
 
-func (LAN *lan) Record_lost_packet(p *stats.Packet, tick int64) {
+func (lan *LAN) Record_lost_packet(p *stats.Packet, tick int64) {
 	p.Finished = tick
 	lan.lost_bucket.Accept_packet(p)
 }
 
 // returns whether there is currently data arriving at the specified computer.
-func (LAN *lan) sense_line(compID int64) bool {
+func (lan *LAN) sense_line(compID int64) bool {
 	return lan.sense_flags[compID]
 }
 
@@ -106,7 +106,7 @@ func (LAN *lan) sense_line(compID int64) bool {
 // We always use the greater of Packet_Arrival.End and our calculated End.
 // We only change the Packet_Arrival.Start field if it is 0.
 // If it is not zero then this means that it has to be less than our calculated start, and we should not replace it.
-func (LAN *lan) put_packet(p *Packet, compID int64, Current_Tick int64) int64 {
+func (lan *LAN) put_packet(p *Packet, compID int64, Current_Tick int64) int64 {
 	Start := Current_Tick + lan.Prop_Ticks
 	End := Start + lan.Packet_Trans_Ticks
 
@@ -129,7 +129,7 @@ func (LAN *lan) put_packet(p *Packet, compID int64, Current_Tick int64) int64 {
 // 		current tick + Jam_Trans_Ticks + Jam_Prop_Ticks;
 // This is because if a computer is sending a jam signal, then once it arrives at other nodes, they stop transmitting packets.
 // At this point, only Jam signals will be on the line. Once the last Jam signal has fully arrived, the line has to be open. 
-func (LAN *lan) send_jam_signal(compID int64, Current_Tick int64) int64 {
+func (lan *LAN) send_jam_signal(compID int64, Current_Tick int64) int64 {
 	Start := Current_Tick + lan.Prop_Ticks
 	End := Start + lan.Jam_Trans_Ticks
 

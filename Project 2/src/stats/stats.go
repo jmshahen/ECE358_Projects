@@ -28,7 +28,7 @@ type Bucket struct {
 	Packets                  QueueMgr
 }
 
-func (Bucket *b) Init(l *log.Logger, packet_len int64, num_comps int64) {
+func (b *Bucket) Init(l *log.Logger, packet_len int64, num_comps int64) {
 	b.logger = l
 	b.logger.Println("[Stats] Started")
 
@@ -46,15 +46,15 @@ func (Bucket *b) Init(l *log.Logger, packet_len int64, num_comps int64) {
 }
 
 //returned in: bits / tick (# bits per tick)
-func (Bucket *b) Throughput(total_ticks int64) float64 {
+func (b *Bucket) Throughput(total_ticks int64) float64 {
 	return float64(b.Packets.Size) * float64(b.packet_len) / float64(total_ticks)
 }
 
-func (Bucket *b) Throughput_per_comp(compID int64, total_ticks int64) float64 {
+func (b *Bucket) Throughput_per_comp(compID int64, total_ticks int64) float64 {
 	return float64(b.packets_per_Comp[compID]) * float64(b.packet_len) / float64(total_ticks)
 }
 
-func (Bucket *b) Accept_packet(p *Packet) {
+func (b *Bucket) Accept_packet(p *Packet) {
 	//calculate delay
 	id := p.CompID
 
