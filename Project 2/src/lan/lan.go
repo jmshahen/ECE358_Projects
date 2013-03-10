@@ -83,9 +83,9 @@ func (LAN *lan) push_to_bucket(p *stats.Packet)
 		lan.bucket.Accept_packet(p)
 }
 
-func (LAN *lan) record_lost_packet(p *stats.Packet)
+func (LAN *lan) Record_lost_packet(p *stats.Packet, tick int64)
 {
-		p.Finished = lan.current_tick
+		p.Finished = tick
 		lan.lost_bucket.Accept_packet(packet)
 }
 
