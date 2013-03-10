@@ -1,6 +1,7 @@
 package main
 
 import (
+	"csv"
 	"os"
 )
 
@@ -16,7 +17,7 @@ func get_variables() {
 	if len(os.Args) == 2 {
 		get_args_params()
 	} else {
-		get_user_params()
+		logger.Fatalln("Only a CSV file is premitted as commandline arguments")
 	}
 	// End of Get Variables
 
@@ -53,62 +54,27 @@ func get_args_params() {
 
 	get_int64_csv(rec[0], &M)
 	get_int64_csv(rec[1], &TICKS)
-	get_int64_csv(rec[2], &TICK_time)
-	get_int64_csv(rec[3], &N)
+	get_float64_csv(rec[2], &TICK_time)
+
+	get_int64_csv(rec[3], &N_start)
+	get_int64_csv(rec[3], &N_end)
+	get_int64_csv(rec[3], &N_step)
+
 	get_int64_csv(rec[4], &A)
 	get_int64_csv(rec[5], &W)
 	get_int64_csv(rec[6], &L)
 }
 
-func get_user_params() {
-	var stdinR = bufio.NewReader(os.Stdin)
-	fmt.Printf("M: ")
-	get_int64(stdinR, &M)
-
-	fmt.Printf("TICKS: ")
-	get_int64(stdinR, &TICKS)
-
-	fmt.Printf("TICK Time (1 TICK = X milliseconds): ")
-	get_int64(stdinR, &TICK_time)
-
-	fmt.Printf("N: ")
-	get_int64(stdinR, &N)
-
-	fmt.Printf("A: (packets/sec) ")
-	get_int64(stdinR, &A)
-
-	fmt.Printf("W: (bits/sec) ")
-	get_int64(stdinR, &W)
-	fmt.Printf("L: ")
-	get_int64(stdinR, &L)
-}
-
-func get_int64_csv(r string, b *int64) {
+func get_float64_csv(r string, b *float64) {
 	_, errI := fmt.Sscan(r, b)
 	if errI != nil {
 		logger.Fatalf("converted = %f\n%v\n", b, errI)
 	}
 }
-func get_val(r *bufio.Reader) string {
-	var val, err = r.ReadString('\n')
-	if err != nil {
-		logger.Fatalln("| err:", err)
-	}
 
-	var trimval = strings.TrimRight(val, "\n")
-	if get_int_debug {
-		logger.Println("Val =", val)
-		logger.Println("trimmed =", trimval)
-	}
-
-	return trimval
-}
-
-func get_int64(r *bufio.Reader, b *int6) {
-	var trimval = get_val(r)
-	// valI, errI := strconv.ParseInt(trimval, 10, 32)
-	_, errI := fmt.Sscan(trimval, b)
+func get_int64_csv(r string, b *int64) {
+	_, errI := fmt.Sscan(r, b)
 	if errI != nil {
-		logger.Fatalf("converted = %f\n%v\n", b, errI)
+		logger.Fatalf("converted = %d\n%v\n", b, errI)
 	}
 }

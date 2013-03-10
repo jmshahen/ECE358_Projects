@@ -4,13 +4,15 @@ import (
 	"csma"
 	"fmt"
 	"lan"
+	"log"
 	"stats"
 )
 
 var (
-	M         int64 // number of times to repeat the tests (avg)
-	TICKS     int64 // length of the test
-	TICK_time int64 // 1 TICK = X milliseconds
+	M         int64   // number of times to repeat the tests (avg)
+	TICKS     int64   // length of the test
+	TICK_time float64 // 1 TICK = X milliseconds
+	lambda    float64 // Average number of packets generated /arrived (packets per second)
 
 	N_start, N_end, N_step int64 // Number of computers  connected to the LAN
 	A                      int64 // Number of packets/sec
@@ -32,6 +34,8 @@ var (
 	tp                int64
 	medium_sense_time int64
 )
+
+var logger *log.Logger
 
 func main() {
 	//Header
