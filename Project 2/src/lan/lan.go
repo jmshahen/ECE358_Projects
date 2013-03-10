@@ -86,7 +86,7 @@ func (LAN *lan) push_to_bucket(p *stats.Packet)
 func (LAN *lan) Record_lost_packet(p *stats.Packet, tick int64)
 {
 		p.Finished = tick
-		lan.lost_bucket.Accept_packet(packet)
+		lan.lost_bucket.Accept_packet(p)
 }
 
 // returns whether there is currently data arriving at the specified computer.
