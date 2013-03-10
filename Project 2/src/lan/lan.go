@@ -15,6 +15,7 @@ type Packet_Arrival struct {
 
 type LAN struct {
 
+	current_tick 			int64
 
 	num_comps 		 		int64 	// Number of computers  connected tot he LAN	
 	Prop_Ticks				int64
@@ -37,7 +38,6 @@ type LAN struct {
 
 func (LAN *lan) Init(n int64, prop_t int64, pack_t int64, jam_t int64 64, b *stats.Bucket, l_b *stats.Bucket) {
 
-
 	lan.sense_flags = make([]bool, N, N)
 	lan.node_info = make([]Packet_Arrival, N, N)
 
@@ -49,7 +49,6 @@ func (LAN *lan) Init(n int64, prop_t int64, pack_t int64, jam_t int64 64, b *sta
 	lan.bucket = b
 	lan.lost_bucket = l_b
 
-
 }
 
 
@@ -59,6 +58,7 @@ func (LAN *lan) Init(n int64, prop_t int64, pack_t int64, jam_t int64 64, b *sta
 // If it is between them, sense_flags for that node becomes true.
 // If t = the End time, then the packet has just fully arrived and sense_flags = false. THe packet_arrival struct is also cleared.
 func (LAN *lan) Complete_Tick(t int64) {
+	lan.current_tick = t;
 	for i:= 0; i < lan.num_comps; i++ {
 		// Packet is currently arriving at this node
 		if t >= lan.node_info[i].Start && t < lan.node_info[i].End {
@@ -79,13 +79,13 @@ func (LAN *lan) Complete_Tick(t int64) {
 // pushes the packet to the bucket.
 func (LAN *lan) push_to_bucket(p *stats.Packet)
 {
-		// record tick packet is sent to bucket
+		p.Finished = lan.current_tick
 		lan.bucket.Accept_packet(p)
 }
 
-func (LAN *lan) record_lost_packet(packet *stats.Packet)
+func (LAN *lan) record_lost_packet(p *stats.Packet)
 {
-		// record tick packet is sent to bucket
+		p.Finished = lan.current_tick
 		lan.lost_bucket.Accept_packet(packet)
 }
 
@@ -140,7 +140,6 @@ func (LAN *lan) put_packet(p *Packet, compID int64, Current_Tick int64) int64 {
 // This is because if a computer is sending a jam signal, then once it arrives at other nodes, they stop transmitting packets.
 // At this point, only Jam signals will be on the line. Once the last Jam signal has fully arrived, the line has to be open. 
 func (LAN *lan) send_jam_signal(compID int64, Current_Tick int64) int64 {
-
 	Start := Current_Tick + lan.Prop_Ticks;
 	End := Start + lan.Jam_Trans_Ticks;
 
