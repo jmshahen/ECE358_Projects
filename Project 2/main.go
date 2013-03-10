@@ -182,17 +182,17 @@ func write_csv_output(num_comps int64) {
 
 	rec := make([]string, csv_cols + 4*num_comps)
 	var i = 0
-	rec[i] = strconv.FormatFloat(M, 'f', -1, 64)
+	rec[i] = strconv.FormatInt(M, 10)
 	i++
-	rec[i] = strconv.FormatFloat(TICKS, 'f', -1, 64)
+	rec[i] = strconv.FormatInt(TICKS, 10)
 	i++
 	rec[i] = strconv.FormatFloat(TICK_time, 'f', -1, 64)
 	i++
-	rec[i] = strconv.FormatFloat(num_comps, 'f', -1, 64)
+	rec[i] = strconv.FormatInt(num_comps, 10)
 	i++
 	rec[i] = strconv.FormatFloat(A, 'f', -1, 64)
 	i++
-	rec[i] = strconv.FormatFloat(L, 'f', -1, 64)
+	rec[i] = strconv.FormatInt(L, 10)
 	i++
 	rec[i] = strconv.FormatFloat(W, 'f', -1, 64)
 	i++
@@ -205,6 +205,7 @@ func write_csv_output(num_comps int64) {
 	i++
 	rec[i] = strconv.FormatFloat(Avg_throughput.GetAvg(), 'f', -1, 64)
 	i++
+
 
 	// clear stats.
 	Avg_Avg_Full_Delay.Clear()
