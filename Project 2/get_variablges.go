@@ -36,7 +36,6 @@ func get_variables() {
 	// End of Set Variables
 
 	// Display Variables
-	// Display Variables
 	fmt.Println("\nVariables being used:")
 	fmt.Println("\t M               ", M)
 	fmt.Println("\t TICKS           ", TICKS)
@@ -61,6 +60,7 @@ func get_variables() {
 	fmt.Println("\t prop_d          ", Prop_ticks, "ticks")
 	fmt.Println("\t trans_d         ", Packet_trans_ticks, "ticks")
 	fmt.Println("\t jam_d           ", Jam_trans_ticks, "ticks")
+	// End of Display Variables
 }
 
 func get_args_params() {
