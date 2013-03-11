@@ -2,7 +2,9 @@ package main
 
 import (
 	"encoding/csv"
+	"fmt"
 	"io"
+	"log"
 	"math"
 	"os"
 )
@@ -30,8 +32,8 @@ func get_variables() {
 	medium_sense_time = bit_time_to_ticks(medium_sense_time)
 
 	Prop_ticks = sec_to_tick(length_of_line / speed_over_line)
-	Packet_trans_ticks = sec_to_tick(L / W)
-	Jam_trans_ticks = sec_to_tick(jam_signal_length / W)
+	Packet_trans_ticks = sec_to_tick(float64(L) / W)
+	Jam_trans_ticks = sec_to_tick(float64(jam_signal_length) / W)
 
 	// End of Set Variables
 
@@ -128,7 +130,7 @@ func bit_time_to_ticks(v int64) int64 {
 }
 
 func sec_to_tick(s float64) int64 {
-	return int64(math.ceil((s * 1e9) / float64(TICK_time)))
+	return int64(math.Ceil((s * 1e9) / float64(TICK_time)))
 }
 
 func get_float64_csv(r string, b *float64) {
