@@ -10,6 +10,8 @@ type QueueMgr struct {
 	MaxSize int64      // the maximum size of the queue, 0 for infinite
 	Head    *QueueItem // the head of the queue
 	Tail    *QueueItem // the tail of the queue
+
+	Probability_loss Pro
 }
 
 type QueueItem struct {
@@ -37,11 +39,11 @@ func (qm *QueueMgr) Push(item Packet) error {
 		qm.Size++
 	} else {
 		//add one to the packet loss
-		Probability_loss.AddOne()
+		qm.Probability_loss.AddOne()
 		return fmt.Errorf("Queue is full, max size %d packets", qm.MaxSize)
 	}
 	//successfully put packet in queue
-	Probability_loss.Total++
+	qm.Probability_loss.Total++
 	return nil
 }
 
