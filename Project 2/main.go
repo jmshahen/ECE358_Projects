@@ -206,7 +206,6 @@ func write_csv_output(num_comps int64) {
 	rec[i] = strconv.FormatFloat(Avg_throughput.GetAvg(), 'f', -1, 64)
 	i++
 
-
 	// clear stats.
 	Avg_Avg_Full_Delay.Clear()
 	Avg_Avg_Queue_Delay.Clear()
