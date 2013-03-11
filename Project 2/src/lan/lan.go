@@ -111,8 +111,7 @@ func (lan *LAN) Put_packet(p *stats.Packet, compID int64, Current_Tick int64) in
 	Start := Current_Tick + lan.Prop_Ticks
 	End := Start + lan.Packet_Trans_Ticks
 
-	var i int64
-	for i = 0; i < lan.num_comps; i++ {
+	for i := int64(0); i < lan.num_comps; i++ {
 		if i != compID {
 			if End > lan.node_info[i].End {
 				lan.node_info[i].End = End
@@ -135,8 +134,7 @@ func (lan *LAN) Send_jam_signal(compID int64, Current_Tick int64) int64 {
 	Start := Current_Tick + lan.Prop_Ticks
 	End := Start + lan.Jam_Trans_Ticks
 
-	var i int64
-	for i = 0; i < lan.num_comps; i++ {
+	for i := int64(0); i < lan.num_comps; i++ {
 		if i != compID {
 			lan.node_info[i].End = End
 			lan.node_info[i].p = nil

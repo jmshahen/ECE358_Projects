@@ -72,6 +72,10 @@ func (b *Bucket) Accept_packet(p *Packet) {
 	b.Avg_CSMA_Delay_per_Comp[id].AddAvg(delay)
 
 	b.packets_per_Comp[id]++
+
+	b.Packets.Push(*p)
+
+	b.logger.Println("[ Bucket ] Accepted Packet")
 }
 
 // Helper functions

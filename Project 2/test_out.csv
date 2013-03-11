@@ -1,2 +1,3 @@
-M,TICKS,TICK Time (sec),Number of Comps,A : Packets per sec,L : Packet length (bits),W : bits per secound,Avg_Full_Delay: ,Avg_Queue_Delay,Avg_CSMA_Delay,Throughtput,Avg_Full_Delay(0),Avg_Queue_Delay(0),Avg_CSMA_Delay(0),Throughtput(0)
-1,100000000,10,1,50,1500,100000000,0,0,0,0,0,0,0,0
+M,TICKS,TICK Time (sec),Number of Comps,A : Packets per sec,L : Packet length (bits),W : bits per secound,Avg_Full_Delay: ,Avg_Queue_Delay,Avg_CSMA_Delay,Throughtput,Avg_Full_Delay (0),Avg_Queue_Delay (0),Avg_CSMA_Delay (0),Throughtput (0),Avg_Full_Delay (1),Avg_Queue_Delay (1),Avg_CSMA_Delay (1),Throughtput (1)
+2,100000000,10,2,50,1500,100000000,1647,0,1647,0,1647,0,1647,0.00078,1647,0,1647,0.000645
+2,100000000,10,2,50,1500,100000000,1647,0,1647,0.00156,1647,0,1647,0.00096,1647,0,1647,0.00075
