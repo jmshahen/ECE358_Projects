@@ -6,7 +6,6 @@ import (
 	"math"
 	"math/rand"
 	"stats"
-	"time"
 )
 
 const (
@@ -43,6 +42,11 @@ type CSMA struct {
 	packet            stats.Packet
 	tp                int64
 	medium_sense_time int64
+
+	//Stats
+	Waiting_for_packet        int64 //in ticks
+	Waiting_to_send           int64 //in ticks
+	Recovering_from_collision int64 //in ticks
 }
 
 //Variables that are set by calling func at Init:
@@ -60,6 +64,10 @@ func (csma *CSMA) Init(id int64, lan *lan.LAN, logger *log.Logger, _lambda float
 	csma.qm.Clear()
 	csma.nextTick = -1
 	csma.state.state = STATE_START
+
+	csma.Waiting_for_packet = 0
+	csma.Waiting_to_send = 0
+	csma.Recovering_from_collision = 0
 
 	logger.Println("[ CSMA /CD ] Started")
 }
@@ -86,12 +94,15 @@ func (csma *CSMA) Tick(t int64) {
 			csma.packet, _ = csma.qm.Pop()
 			csma.packet.ExitQueue = t
 			csma.state.state = STATE_MEDIUM_SENSING_INIT
+		} else {
+			csma.Waiting_for_packet++
 		}
 	case STATE_MEDIUM_SENSING_INIT:
 		csma.waitFor = t + csma.medium_sense_time
 		csma.state.state = STATE_MEDIUM_SENSING
 		fallthrough
 	case STATE_MEDIUM_SENSING:
+		csma.Waiting_to_send++
 		//sense medium
 		if csma.lan.Sense_line(csma.id) {
 			//csma.logger.Println("[ Comp", csma.id, "] STATE_MEDIUM_SENSING: LAN Busy")
@@ -104,6 +115,7 @@ func (csma *CSMA) Tick(t int64) {
 			csma.state.state = STATE_TRANSMIT_FRAME
 		}
 	case STATE_STANDARD_WAIT:
+		csma.Waiting_to_send++
 		if csma.waitFor == t {
 			csma.state.state = STATE_MEDIUM_SENSING_INIT
 		}
@@ -118,6 +130,7 @@ func (csma *CSMA) Tick(t int64) {
 			csma.state.state = STATE_SUCCESS_SEND
 		}
 	case STATE_JAMMING_SIGNAL:
+		csma.Recovering_from_collision++
 		if csma.waitFor == t {
 			csma.i++
 			if csma.i > csma.kmax {
@@ -128,6 +141,7 @@ func (csma *CSMA) Tick(t int64) {
 			}
 		}
 	case STATE_EXP_BACKOFF:
+		csma.Recovering_from_collision++
 		if csma.waitFor == t {
 			csma.state.state = STATE_MEDIUM_SENSING_INIT
 		}
@@ -137,6 +151,7 @@ func (csma *CSMA) Tick(t int64) {
 		csma.state.state = STATE_START
 	case STATE_ERROR_SEND:
 		//record failed packet
+		csma.Recovering_from_collision++
 		csma.lan.Record_lost_packet(csma.packet, t)
 		csma.logger.Println(csma.id, "Failed to send packet", csma.kmax, "times")
 		csma.state.state = STATE_START

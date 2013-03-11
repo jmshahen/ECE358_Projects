@@ -13,6 +13,7 @@ import (
 )
 
 var (
+	logger    *log.Logger
 	M         int64   // number of times to repeat the tests (avg)
 	TICKS     int64   // length of the test
 	TICK_time float64 // 1 TICK = X nanoseconds
@@ -26,6 +27,7 @@ var (
 	cmsa        csma_cd.CSMA
 	bucket      stats.Bucket
 	lost_bucket stats.Bucket
+	computers   []csma_cd.CSMA
 
 	length_of_line    float64 //in meters
 	speed_over_line   float64 //in meters per sec
@@ -39,10 +41,9 @@ var (
 	tp                int64
 	medium_sense_time int64
 
-	computers []csma_cd.CSMA
-
-	logger        *log.Logger
-	csv_file_name string
+	Avg_Avg_Waiting_for_packet        stats.Avg
+	Avg_Avg_Waiting_to_send           stats.Avg
+	Avg_Avg_Recovering_from_collision stats.Avg
 
 	Avg_Avg_Full_Delay           stats.Avg
 	Avg_Avg_Full_Delay_per_Comp  []stats.Avg
@@ -53,7 +54,9 @@ var (
 	Avg_throughput               stats.Avg
 	Avg_throughput_per_Comp      []stats.Avg
 
-	csv_cols int64 = 11
+	csv_cols          int64 = 14
+	csv_file_name_in  string
+	csv_file_name_out string
 )
 
 func main() {
@@ -104,11 +107,15 @@ func main() {
 			Avg_throughput.AddAvg(bucket.Throughput(TICKS))
 
 			// Probably only needed for testing.
-			for a := range Avg_Avg_Full_Delay_per_Comp {
+			for a := range computers {
 				Avg_Avg_Full_Delay_per_Comp[a].AddAvg(bucket.Avg_Full_Delay_per_Comp[a].GetAvg())
 				Avg_Avg_Queue_Delay_per_Comp[a].AddAvg(bucket.Avg_Queue_Delay_per_Comp[a].GetAvg())
 				Avg_Avg_CSMA_Delay_per_Comp[a].AddAvg(bucket.Avg_CSMA_Delay_per_Comp[a].GetAvg())
 				Avg_throughput_per_Comp[a].AddAvg(bucket.Throughput_per_comp(int64(a), TICKS))
+
+				Avg_Avg_Waiting_for_packet.AddAvg(float64(computers[a].Waiting_for_packet))
+				Avg_Avg_Waiting_to_send.AddAvg(float64(computers[a].Waiting_to_send))
+				Avg_Avg_Recovering_from_collision.AddAvg(float64(computers[a].Recovering_from_collision))
 			}
 			// end compute stats
 
@@ -140,10 +147,9 @@ func init_computers(N int64) {
 }
 
 func write_csv_header(max_comps int64) {
-	csv_file_name = "test_out_" + strconv.FormatInt(max_comps, 10) + ".csv"
-	_, err := os.Open(csv_file_name)
+	_, err := os.Open(csv_file_name_out)
 	if os.IsNotExist(err) {
-		file, _ := os.Create(csv_file_name)
+		file, _ := os.Create(csv_file_name_out)
 		writter := csv.NewWriter(file)
 
 		var i = 0
@@ -172,6 +178,13 @@ func write_csv_header(max_comps int64) {
 		headers[i] = "Throughtput"
 		i++
 
+		headers[i] = "Per_Avg_Waiting_for_packet"
+		i++
+		headers[i] = "Per_Avg_Waiting_to_send"
+		i++
+		headers[i] = "Per_Avg_Recovering_from_collision"
+		i++
+
 		var d = i
 		for c := int64(0); c < max_comps; c, d = c+1, d+4 {
 			s := strconv.FormatInt(c, 10)
@@ -188,8 +201,7 @@ func write_csv_header(max_comps int64) {
 }
 
 func write_csv_output(num_comps int64) {
-
-	file, err := os.OpenFile(csv_file_name, os.O_RDWR|os.O_APPEND, 0660)
+	file, err := os.OpenFile(csv_file_name_out, os.O_RDWR|os.O_APPEND, 0660)
 	if err != nil {
 		logger.Fatalf("Error in opening write file:", err)
 	}
@@ -222,11 +234,22 @@ func write_csv_output(num_comps int64) {
 	rec[i] = strconv.FormatFloat(Avg_throughput.GetAvg(), 'f', -1, 64)
 	i++
 
+	rec[i] = strconv.FormatFloat(Avg_Avg_Waiting_for_packet.GetAvg()/float64(TICKS), 'f', -1, 64)
+	i++
+	rec[i] = strconv.FormatFloat(Avg_Avg_Waiting_to_send.GetAvg()/float64(TICKS), 'f', -1, 64)
+	i++
+	rec[i] = strconv.FormatFloat(Avg_Avg_Recovering_from_collision.GetAvg()/float64(TICKS), 'f', -1, 64)
+	i++
+
 	// clear stats.
 	Avg_Avg_Full_Delay.Clear()
 	Avg_Avg_Queue_Delay.Clear()
 	Avg_Avg_CSMA_Delay.Clear()
 	Avg_throughput.Clear()
+
+	Avg_Avg_Waiting_for_packet.Clear()
+	Avg_Avg_Waiting_to_send.Clear()
+	Avg_Avg_Recovering_from_collision.Clear()
 
 	var d = i
 	for c := int64(0); c < num_comps; c, d = c+1, d+4 {
@@ -234,11 +257,6 @@ func write_csv_output(num_comps int64) {
 		rec[d+1] = strconv.FormatFloat(Avg_Avg_Queue_Delay_per_Comp[c].GetAvg(), 'f', -1, 64)
 		rec[d+2] = strconv.FormatFloat(Avg_Avg_CSMA_Delay_per_Comp[c].GetAvg(), 'f', -1, 64)
 		rec[d+3] = strconv.FormatFloat(Avg_throughput_per_Comp[c].GetAvg(), 'f', -1, 64)
-
-		Avg_Avg_Full_Delay_per_Comp[c].Clear()
-		Avg_Avg_Queue_Delay_per_Comp[c].Clear()
-		Avg_Avg_CSMA_Delay_per_Comp[c].Clear()
-		Avg_throughput_per_Comp[c].Clear()
 	}
 
 	writter.Write(rec)

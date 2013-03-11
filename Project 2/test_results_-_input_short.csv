@@ -1,0 +1,2 @@
+M,TICKS,TICK Time (sec),Number of Comps,A : Packets per sec,L : Packet length (bits),W : bits per secound,Avg_Full_Delay: ,Avg_Queue_Delay,Avg_CSMA_Delay,Throughtput,Per_Avg_Waiting_for_packet,Per_Avg_Waiting_to_send,Per_Avg_Recovering_from_collision,Avg_Full_Delay (0),Avg_Queue_Delay (0),Avg_CSMA_Delay (0),Throughtput (0),Avg_Full_Delay (1),Avg_Queue_Delay (1),Avg_CSMA_Delay (1),Throughtput (1)
+2,100000000,10,2,50,1500,100000000,1647,0,1647,0.0014925,0.9992044975,0.0000482575,0,1647,0,1647,0.000525,1647,0,1647,0.000885
