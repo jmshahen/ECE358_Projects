@@ -91,7 +91,8 @@ func get_args_params() {
 	i := 0
 	get_int64_csv(rec[i], &M)
 	i++
-	get_int64_csv(rec[i], &TICKS)
+	get_float64_csv(rec[i], &TICK_time)
+	TICKS = int64(TICK_time)
 	i++
 	get_float64_csv(rec[i], &TICK_time)
 	i++

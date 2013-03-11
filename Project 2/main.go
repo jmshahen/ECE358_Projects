@@ -85,7 +85,8 @@ func main() {
 			lan_v.Init(i, Prop_ticks, Packet_trans_ticks, Jam_trans_ticks, &bucket, &lost_bucket)
 			// end initialize components
 
-			for t := int64(0); t < TICKS; t++ {
+			//must start at 1
+			for t := int64(1); t <= TICKS; t++ {
 				for c := range computers {
 					computers[c].Tick(t)
 				}
