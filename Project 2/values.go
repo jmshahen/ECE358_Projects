@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"math"
-	"math/rand"
 )
 
 var (
@@ -29,7 +28,9 @@ var (
 	tp                int64
 	medium_sense_time int64
 
-	logger *log.Logger
+	logger            *log.Logger
+	csv_file_name_in  string
+	csv_file_name_out string
 )
 
 func main() {
@@ -38,27 +39,18 @@ func main() {
 	get_variables()
 
 	fmt.Println("\t ---")
-	var nextPacket int64 = getExpRandNum()
+	var nextPacket int64
+	var avg int64
+	for i := int64(0); i < M; i++ {
+		avg += getExpRandNum()
+	}
+	nextPacket = int64(avg / M)
 	fmt.Println("\t genPacket       ", nextPacket, "ticks")
-	fmt.Println("\t maxGenPacket    ", (TICKS / nextPacket), "packets")
-}
-
-func getExpRandNum() int64 {
-	a := 1 - rand.Float64()
-	b := math.Log(a)
-	c := (-1 / A)
-	d := b * c             // sec / packet
-	ans := sec_to_tickb(d) // tick / packet
-
-	return ans
-}
-
-//convert seconds into ticks
-func sec_to_tickb(s float64) int64 {
-	return int64(math.Ceil((s * 1e9) / TICK_time))
-}
-
-//The exponential backoff wait time, when a collision is detected
-func expBackOff(i int32) int64 {
-	return int64(rand.Int31n(2^i-1)) * tp
+	fmt.Println("\t maxGenPacket    ", (TICKS / nextPacket), "packets / per one comp")
+	a := math.Floor(float64(nextPacket) / float64(medium_sense_time+Packet_trans_ticks))
+	fmt.Println("\t maxCompsSend    ", a, "comps")
+	b := math.Min(a, float64(N_end))
+	fmt.Println("\t availCompsSend  ", b, "comps")
+	fmt.Println("\t availGenPacket  ", math.Floor(b*float64(TICKS)/float64(nextPacket)), "packets / per", b, "comp")
+	fmt.Println("\t maxGenPacket    ", math.Floor(a*float64(TICKS)/float64(nextPacket)), "packets / per", a, "comp")
 }
