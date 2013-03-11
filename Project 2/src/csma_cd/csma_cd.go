@@ -6,7 +6,6 @@ import (
 	"math"
 	"math/rand"
 	"stats"
-	"time"
 )
 
 const (
@@ -43,6 +42,11 @@ type CSMA struct {
 	packet            stats.Packet
 	tp                int64
 	medium_sense_time int64
+
+	//Stats
+	Waiting_for_packet        int64 //in ticks
+	Waiting_to_send           int64 //in ticks
+	Recovering_from_collision int64 //in ticks
 }
 
 //Variables that are set by calling func at Init:
@@ -61,9 +65,11 @@ func (csma *CSMA) Init(id int64, lan *lan.LAN, logger *log.Logger, _lambda float
 	csma.nextTick = -1
 	csma.state.state = STATE_START
 
-	logger.Println("[ CSMA /CD ] Started")
+	csma.Waiting_for_packet = 0
+	csma.Waiting_to_send = 0
+	csma.Recovering_from_collision = 0
 
-	rand.Seed(time.Now().UnixNano())
+	logger.Println("[ CSMA /CD ] Started")
 }
 
 //The main logic for the CSMA Computer
@@ -77,39 +83,46 @@ func (csma *CSMA) Tick(t int64) {
 			csma.producePacket()
 		}
 		csma.getExpRandNum()
-		csma.logger.Println("[ Comp", csma.id, "] Next Tick", csma.nextTick)
+		//csma.logger.Println("[ Comp", csma.id, "] Next Tick", csma.nextTick)
 	}
 
 	switch csma.state.state {
 	case STATE_START:
 		csma.i = 0
 		if csma.qm.Size != 0 {
+			//csma.logger.Println("[ Comp", csma.id, "] STATE_START: Packet Readying")
 			csma.packet, _ = csma.qm.Pop()
 			csma.packet.ExitQueue = t
 			csma.state.state = STATE_MEDIUM_SENSING_INIT
+		} else {
+			csma.Waiting_for_packet++
 		}
 	case STATE_MEDIUM_SENSING_INIT:
 		csma.waitFor = t + csma.medium_sense_time
 		csma.state.state = STATE_MEDIUM_SENSING
 		fallthrough
 	case STATE_MEDIUM_SENSING:
+		csma.Waiting_to_send++
 		//sense medium
 		if csma.lan.Sense_line(csma.id) {
+			//csma.logger.Println("[ Comp", csma.id, "] STATE_MEDIUM_SENSING: LAN Busy")
 			csma.waitFor = t + csma.tp
 			csma.state.state = STATE_STANDARD_WAIT
 		} else if csma.waitFor == t {
 			//ready to send file
-			csma.waitFor = t + csma.lan.Put_packet(&csma.packet, csma.id, t)
+			//csma.logger.Println("[ Comp", csma.id, "] STATE_MEDIUM_SENSING: Sending Packet")
+			csma.waitFor = t + csma.lan.Put_packet(csma.packet, csma.id, t)
 			csma.state.state = STATE_TRANSMIT_FRAME
 		}
 	case STATE_STANDARD_WAIT:
+		csma.Waiting_to_send++
 		if csma.waitFor == t {
 			csma.state.state = STATE_MEDIUM_SENSING_INIT
 		}
 	case STATE_TRANSMIT_FRAME:
 		//sense medium
 		if csma.lan.Sense_line(csma.id) {
-			//collision
+			//csma.logger.Println("[ Comp", csma.id, "] STATE_TRANSMIT_FRAME: Collision Detected")
 			csma.waitFor = t + csma.lan.Send_jam_signal(csma.id, t)
 			csma.state.state = STATE_JAMMING_SIGNAL
 		} else if csma.waitFor == t {
@@ -117,6 +130,7 @@ func (csma *CSMA) Tick(t int64) {
 			csma.state.state = STATE_SUCCESS_SEND
 		}
 	case STATE_JAMMING_SIGNAL:
+		csma.Recovering_from_collision++
 		if csma.waitFor == t {
 			csma.i++
 			if csma.i > csma.kmax {
@@ -127,16 +141,18 @@ func (csma *CSMA) Tick(t int64) {
 			}
 		}
 	case STATE_EXP_BACKOFF:
+		csma.Recovering_from_collision++
 		if csma.waitFor == t {
 			csma.state.state = STATE_MEDIUM_SENSING_INIT
 		}
-	case STATE_ERROR_SEND:
-		//record failed packet
-		csma.logger.Println(csma.id, "Correctly Sent a Packet")
-		csma.state.state = STATE_START
 	case STATE_SUCCESS_SEND:
 		//record successful packet
-		csma.lan.Record_lost_packet(&csma.packet, t)
+		//csma.logger.Println(csma.id, "Correctly Sent a Packet")
+		csma.state.state = STATE_START
+	case STATE_ERROR_SEND:
+		//record failed packet
+		csma.Recovering_from_collision++
+		csma.lan.Record_lost_packet(csma.packet, t)
 		csma.logger.Println(csma.id, "Failed to send packet", csma.kmax, "times")
 		csma.state.state = STATE_START
 	}
@@ -168,5 +184,11 @@ func sec_to_tick(s float64, TICK_time float64) int64 {
 
 //The exponential backoff wait time, when a collision is detected
 func (csma *CSMA) expBackOff() int64 {
-	return int64(rand.Int31n(2^int32(csma.i)-1)) * csma.tp
+	a := int64(math.Pow(2.0, float64(csma.i)) - 1)
+	if a <= 0 {
+		a = 1
+		csma.logger.Printf("SHIT!!!! How Did this Happen? csma.i =", csma.i)
+	}
+	b := rand.Int63n(a)
+	return b * csma.tp
 }

@@ -55,7 +55,7 @@ func (b *Bucket) Throughput_per_comp(compID int64, total_ticks int64) float64 {
 	return float64(b.packets_per_Comp[compID]) * float64(b.packet_len) / float64(total_ticks)
 }
 
-func (b *Bucket) Accept_packet(p *Packet) {
+func (b *Bucket) Accept_packet(p Packet) {
 	//calculate delay
 	id := p.CompID
 
@@ -72,6 +72,10 @@ func (b *Bucket) Accept_packet(p *Packet) {
 	b.Avg_CSMA_Delay_per_Comp[id].AddAvg(delay)
 
 	b.packets_per_Comp[id]++
+
+	b.Packets.Push(p)
+
+	//b.logger.Println("[ Bucket ] Accepted Packet")
 }
 
 // Helper functions

@@ -6,7 +6,10 @@ import (
 	"io"
 	"log"
 	"math"
+	"math/rand"
 	"os"
+	"path"
+	"time"
 )
 
 func get_variables() {
@@ -27,7 +30,7 @@ func get_variables() {
 
 	/**************************************************************************/
 	// Set Variables
-
+	rand.Seed(time.Now().UnixNano())
 	tp = bit_time_to_ticks(tp)
 	medium_sense_time = bit_time_to_ticks(medium_sense_time)
 
@@ -35,9 +38,13 @@ func get_variables() {
 	Packet_trans_ticks = sec_to_tick(float64(L) / W)
 	Jam_trans_ticks = sec_to_tick(float64(jam_signal_length) / W)
 
+	dir, file := path.Split(csv_file_name_in)
+	csv_file_name_out = dir + "test_results_-_" + file
 	// End of Set Variables
 
 	// Display Variables
+	fmt.Println("\nInput file:", csv_file_name_in)
+	fmt.Println("\nResults saved to:", csv_file_name_out)
 	fmt.Println("\nVariables being used:")
 	fmt.Println("\t M               ", M)
 	fmt.Println("\t TICKS           ", TICKS)
@@ -62,11 +69,33 @@ func get_variables() {
 	fmt.Println("\t prop_d          ", Prop_ticks, "ticks")
 	fmt.Println("\t trans_d         ", Packet_trans_ticks, "ticks")
 	fmt.Println("\t jam_d           ", Jam_trans_ticks, "ticks")
+	fmt.Println("\t ---")
+	nextPacket := getExpRandNum()
+	fmt.Println("\t genPacket       ", nextPacket, "ticks / packet")
+	fmt.Println("\t maxGenPacket    ", (TICKS / nextPacket), "packets")
+	fmt.Println("\t ---")
+	fmt.Println("\t --- ---\n")
 	// End of Display Variables
 }
 
+func getExpRandNum() int64 {
+	a := 1 - rand.Float64()
+	b := math.Log(a)
+	c := (-1 / A)
+	d := b * c             // sec / packet
+	ans := sec_to_tickb(d) // tick / packet
+
+	return ans
+}
+
+//convert seconds into ticks
+func sec_to_tickb(s float64) int64 {
+	return int64(math.Ceil((s * 1e9) / TICK_time))
+}
+
 func get_args_params() {
-	file, err := os.Open(os.Args[1])
+	csv_file_name_in = os.Args[1]
+	file, err := os.Open(csv_file_name_in)
 	if err != nil {
 		logger.Fatalf("Error:", err)
 	}
@@ -91,7 +120,8 @@ func get_args_params() {
 	i := 0
 	get_int64_csv(rec[i], &M)
 	i++
-	get_int64_csv(rec[i], &TICKS)
+	get_float64_csv(rec[i], &TICK_time)
+	TICKS = int64(TICK_time)
 	i++
 	get_float64_csv(rec[i], &TICK_time)
 	i++

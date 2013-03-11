@@ -13,6 +13,7 @@ import (
 )
 
 var (
+	logger    *log.Logger
 	M         int64   // number of times to repeat the tests (avg)
 	TICKS     int64   // length of the test
 	TICK_time float64 // 1 TICK = X nanoseconds
@@ -26,6 +27,7 @@ var (
 	cmsa        csma_cd.CSMA
 	bucket      stats.Bucket
 	lost_bucket stats.Bucket
+	computers   []csma_cd.CSMA
 
 	length_of_line    float64 //in meters
 	speed_over_line   float64 //in meters per sec
@@ -39,9 +41,9 @@ var (
 	tp                int64
 	medium_sense_time int64
 
-	computers []csma_cd.CSMA
-
-	logger *log.Logger
+	Avg_Avg_Waiting_for_packet        stats.Avg
+	Avg_Avg_Waiting_to_send           stats.Avg
+	Avg_Avg_Recovering_from_collision stats.Avg
 
 	Avg_Avg_Full_Delay           stats.Avg
 	Avg_Avg_Full_Delay_per_Comp  []stats.Avg
@@ -50,9 +52,11 @@ var (
 	Avg_Avg_CSMA_Delay           stats.Avg
 	Avg_Avg_CSMA_Delay_per_Comp  []stats.Avg
 	Avg_throughput               stats.Avg
-	Avg_throughput_per_comp      []stats.Avg
+	Avg_throughput_per_Comp      []stats.Avg
 
-	csv_cols int64 = 11
+	csv_cols          int64 = 16
+	csv_file_name_in  string
+	csv_file_name_out string
 )
 
 func main() {
@@ -85,7 +89,8 @@ func main() {
 			lan_v.Init(i, Prop_ticks, Packet_trans_ticks, Jam_trans_ticks, &bucket, &lost_bucket)
 			// end initialize components
 
-			for t := int64(0); t < TICKS; t++ {
+			//must start at 1
+			for t := int64(1); t <= TICKS; t++ {
 				for c := range computers {
 					computers[c].Tick(t)
 				}
@@ -102,11 +107,15 @@ func main() {
 			Avg_throughput.AddAvg(bucket.Throughput(TICKS))
 
 			// Probably only needed for testing.
-			for a := range Avg_Avg_Full_Delay_per_Comp {
+			for a := range computers {
 				Avg_Avg_Full_Delay_per_Comp[a].AddAvg(bucket.Avg_Full_Delay_per_Comp[a].GetAvg())
 				Avg_Avg_Queue_Delay_per_Comp[a].AddAvg(bucket.Avg_Queue_Delay_per_Comp[a].GetAvg())
 				Avg_Avg_CSMA_Delay_per_Comp[a].AddAvg(bucket.Avg_CSMA_Delay_per_Comp[a].GetAvg())
-				Avg_throughput_per_comp[a].AddAvg(bucket.Throughput_per_comp(int64(a), TICKS))
+				Avg_throughput_per_Comp[a].AddAvg(bucket.Throughput_per_comp(int64(a), TICKS))
+
+				Avg_Avg_Waiting_for_packet.AddAvg(float64(computers[a].Waiting_for_packet))
+				Avg_Avg_Waiting_to_send.AddAvg(float64(computers[a].Waiting_to_send))
+				Avg_Avg_Recovering_from_collision.AddAvg(float64(computers[a].Recovering_from_collision))
 			}
 			// end compute stats
 
@@ -125,6 +134,11 @@ func main() {
 
 func init_computers(N int64) {
 
+	Avg_Avg_Full_Delay_per_Comp = make([]stats.Avg, N, N)
+	Avg_Avg_Queue_Delay_per_Comp = make([]stats.Avg, N, N)
+	Avg_Avg_CSMA_Delay_per_Comp = make([]stats.Avg, N, N)
+	Avg_throughput_per_Comp = make([]stats.Avg, N, N)
+
 	computers = make([]csma_cd.CSMA, N, N)
 
 	for i := int64(0); i < N; i++ {
@@ -133,9 +147,9 @@ func init_computers(N int64) {
 }
 
 func write_csv_header(max_comps int64) {
-	_, err := os.Open("test_out.csv")
+	_, err := os.Open(csv_file_name_out)
 	if os.IsNotExist(err) {
-		file, _ := os.Create("test_out.csv")
+		file, _ := os.Create(csv_file_name_out)
 		writter := csv.NewWriter(file)
 
 		var i = 0
@@ -161,15 +175,28 @@ func write_csv_header(max_comps int64) {
 		i++
 		headers[i] = "Avg_CSMA_Delay"
 		i++
+
+		headers[i] = "Total Successful Packets Sent"
+		i++
+		headers[i] = "Total Failed Packets Sent"
+		i++
 		headers[i] = "Throughtput"
+		i++
+
+		headers[i] = "Per_Avg_Waiting_for_packet"
+		i++
+		headers[i] = "Per_Avg_Waiting_to_send"
+		i++
+		headers[i] = "Per_Avg_Recovering_from_collision"
 		i++
 
 		var d = i
 		for c := int64(0); c < max_comps; c, d = c+1, d+4 {
-			headers[d] = "Avg_Full_Delay(" + strconv.FormatInt(c, 10) + ")"
-			headers[d+1] = "Avg_Queue_Delay(" + strconv.FormatInt(c, 10) + ")"
-			headers[d+2] = "Avg_CSMA_Delay(" + strconv.FormatInt(c, 10) + ")"
-			headers[d+3] = "Throughtput(" + strconv.FormatInt(c, 10) + ")"
+			s := strconv.FormatInt(c, 10)
+			headers[d+0] = "Avg_Full_Delay (" + s + ")"
+			headers[d+1] = "Avg_Queue_Delay (" + s + ")"
+			headers[d+2] = "Avg_CSMA_Delay (" + s + ")"
+			headers[d+3] = "Throughtput (" + s + ")"
 		}
 
 		writter.Write(headers)
@@ -179,8 +206,7 @@ func write_csv_header(max_comps int64) {
 }
 
 func write_csv_output(num_comps int64) {
-
-	file, err := os.OpenFile("test_out.csv", os.O_RDWR|os.O_APPEND, 0660)
+	file, err := os.OpenFile(csv_file_name_out, os.O_RDWR|os.O_APPEND, 0660)
 	if err != nil {
 		logger.Fatalf("Error in opening write file:", err)
 	}
@@ -210,7 +236,19 @@ func write_csv_output(num_comps int64) {
 	i++
 	rec[i] = strconv.FormatFloat(Avg_Avg_CSMA_Delay.GetAvg(), 'f', -1, 64)
 	i++
+
+	rec[i] = strconv.FormatFloat(float64(bucket.Packets.Size), 'f', -1, 64)
+	i++
+	rec[i] = strconv.FormatFloat(float64(lost_bucket.Packets.Size), 'f', -1, 64)
+	i++
 	rec[i] = strconv.FormatFloat(Avg_throughput.GetAvg(), 'f', -1, 64)
+	i++
+
+	rec[i] = strconv.FormatFloat(Avg_Avg_Waiting_for_packet.GetAvg()/float64(TICKS), 'f', -1, 64)
+	i++
+	rec[i] = strconv.FormatFloat(Avg_Avg_Waiting_to_send.GetAvg()/float64(TICKS), 'f', -1, 64)
+	i++
+	rec[i] = strconv.FormatFloat(Avg_Avg_Recovering_from_collision.GetAvg()/float64(TICKS), 'f', -1, 64)
 	i++
 
 	// clear stats.
@@ -219,17 +257,16 @@ func write_csv_output(num_comps int64) {
 	Avg_Avg_CSMA_Delay.Clear()
 	Avg_throughput.Clear()
 
+	Avg_Avg_Waiting_for_packet.Clear()
+	Avg_Avg_Waiting_to_send.Clear()
+	Avg_Avg_Recovering_from_collision.Clear()
+
 	var d = i
 	for c := int64(0); c < num_comps; c, d = c+1, d+4 {
-		rec[d] = strconv.FormatFloat(Avg_Avg_Full_Delay_per_Comp[c].GetAvg(), 'f', -1, 64)
+		rec[d+0] = strconv.FormatFloat(Avg_Avg_Full_Delay_per_Comp[c].GetAvg(), 'f', -1, 64)
 		rec[d+1] = strconv.FormatFloat(Avg_Avg_Queue_Delay_per_Comp[c].GetAvg(), 'f', -1, 64)
 		rec[d+2] = strconv.FormatFloat(Avg_Avg_CSMA_Delay_per_Comp[c].GetAvg(), 'f', -1, 64)
-		rec[d+3] = strconv.FormatFloat(Avg_throughput_per_comp[c].GetAvg(), 'f', -1, 64)
-
-		Avg_Avg_Full_Delay_per_Comp[c].Clear()
-		Avg_Avg_Queue_Delay_per_Comp[c].Clear()
-		Avg_Avg_CSMA_Delay_per_Comp[c].Clear()
-		Avg_throughput_per_comp[c].Clear()
+		rec[d+3] = strconv.FormatFloat(Avg_throughput_per_Comp[c].GetAvg(), 'f', -1, 64)
 	}
 
 	writter.Write(rec)
