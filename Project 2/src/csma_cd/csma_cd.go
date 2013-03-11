@@ -102,7 +102,7 @@ func (csma *CSMA) Tick(t int64) {
 		} else if csma.waitFor == t {
 			//ready to send file
 			//csma.logger.Println("[ Comp", csma.id, "] STATE_MEDIUM_SENSING: Sending Packet")
-			csma.waitFor = t + csma.lan.Put_packet(&csma.packet, csma.id, t)
+			csma.waitFor = t + csma.lan.Put_packet(csma.packet, csma.id, t)
 			csma.state.state = STATE_TRANSMIT_FRAME
 		}
 	case STATE_STANDARD_WAIT:
@@ -139,7 +139,7 @@ func (csma *CSMA) Tick(t int64) {
 		csma.state.state = STATE_START
 	case STATE_ERROR_SEND:
 		//record failed packet
-		csma.lan.Record_lost_packet(&csma.packet, t)
+		csma.lan.Record_lost_packet(csma.packet, t)
 		csma.logger.Println(csma.id, "Failed to send packet", csma.kmax, "times")
 		csma.state.state = STATE_START
 	}

@@ -10,7 +10,7 @@ import (
 type Packet_Arrival struct {
 	Start int64
 	End   int64
-	p     *stats.Packet
+	p     stats.Packet
 }
 
 type LAN struct {
@@ -64,18 +64,17 @@ func (lan *LAN) Complete_Tick(t int64) {
 			lan.node_info[i].Start = 0
 			lan.node_info[i].End = 0
 			lan.push_to_bucket(lan.node_info[i].p, t)
-			lan.node_info[i].p = nil
 		}
 	}
 }
 
 // pushes the packet to the bucket.
-func (lan *LAN) push_to_bucket(p *stats.Packet, tick int64) {
+func (lan *LAN) push_to_bucket(p stats.Packet, tick int64) {
 	p.Finished = tick
 	lan.bucket.Accept_packet(p)
 }
 
-func (lan *LAN) Record_lost_packet(p *stats.Packet, tick int64) {
+func (lan *LAN) Record_lost_packet(p stats.Packet, tick int64) {
 	p.Finished = tick
 	lan.lost_bucket.Accept_packet(p)
 }
@@ -107,7 +106,7 @@ func (lan *LAN) Sense_line(compID int64) bool {
 // We always use the greater of Packet_Arrival.End and our calculated End.
 // We only change the Packet_Arrival.Start field if it is 0.
 // If it is not zero then this means that it has to be less than our calculated start, and we should not replace it.
-func (lan *LAN) Put_packet(p *stats.Packet, compID int64, Current_Tick int64) int64 {
+func (lan *LAN) Put_packet(p stats.Packet, compID int64, Current_Tick int64) int64 {
 	Start := Current_Tick + lan.Prop_Ticks
 	End := Start + lan.Packet_Trans_Ticks
 
@@ -137,7 +136,6 @@ func (lan *LAN) Send_jam_signal(compID int64, Current_Tick int64) int64 {
 	for i := int64(0); i < lan.num_comps; i++ {
 		if i != compID {
 			lan.node_info[i].End = End
-			lan.node_info[i].p = nil
 			if lan.node_info[i].Start == 0 {
 				lan.node_info[i].Start = Start
 			}
