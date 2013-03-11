@@ -41,7 +41,8 @@ var (
 
 	computers []csma_cd.CSMA
 
-	logger *log.Logger
+	logger        *log.Logger
+	csv_file_name string
 
 	Avg_Avg_Full_Delay           stats.Avg
 	Avg_Avg_Full_Delay_per_Comp  []stats.Avg
@@ -139,9 +140,10 @@ func init_computers(N int64) {
 }
 
 func write_csv_header(max_comps int64) {
-	_, err := os.Open("test_out.csv")
+	csv_file_name = "test_out_" + strconv.FormatInt(max_comps, 10) + ".csv"
+	_, err := os.Open(csv_file_name)
 	if os.IsNotExist(err) {
-		file, _ := os.Create("test_out.csv")
+		file, _ := os.Create(csv_file_name)
 		writter := csv.NewWriter(file)
 
 		var i = 0
@@ -187,7 +189,7 @@ func write_csv_header(max_comps int64) {
 
 func write_csv_output(num_comps int64) {
 
-	file, err := os.OpenFile("test_out.csv", os.O_RDWR|os.O_APPEND, 0660)
+	file, err := os.OpenFile(csv_file_name, os.O_RDWR|os.O_APPEND, 0660)
 	if err != nil {
 		logger.Fatalf("Error in opening write file:", err)
 	}
