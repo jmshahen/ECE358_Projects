@@ -1,10 +1,10 @@
 package main
 
 import (
-	"lan"
 	"csma_cd"
 	"encoding/csv"
 	"fmt"
+	"lan"
 	"log"
 	"os"
 	"stats"
@@ -114,7 +114,6 @@ func main() {
 			fmt.Println("[Stats] Elapsed Time                        =\t", tsince)
 		}
 		write_csv_output(i)
-		computers.clear()
 
 	}
 	tsince = time.Since(test_b)
