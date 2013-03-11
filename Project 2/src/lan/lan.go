@@ -81,7 +81,7 @@ func (lan *LAN) Record_lost_packet(p *stats.Packet, tick int64) {
 }
 
 // returns whether there is currently data arriving at the specified computer.
-func (lan *LAN) sense_line(compID int64) bool {
+func (lan *LAN) Sense_line(compID int64) bool {
 	return lan.sense_flags[compID]
 }
 
@@ -107,7 +107,7 @@ func (lan *LAN) sense_line(compID int64) bool {
 // We always use the greater of Packet_Arrival.End and our calculated End.
 // We only change the Packet_Arrival.Start field if it is 0.
 // If it is not zero then this means that it has to be less than our calculated start, and we should not replace it.
-func (lan *LAN) put_packet(p *stats.Packet, compID int64, Current_Tick int64) int64 {
+func (lan *LAN) Put_packet(p *stats.Packet, compID int64, Current_Tick int64) int64 {
 	Start := Current_Tick + lan.Prop_Ticks
 	End := Start + lan.Packet_Trans_Ticks
 
@@ -131,7 +131,7 @@ func (lan *LAN) put_packet(p *stats.Packet, compID int64, Current_Tick int64) in
 // 		current tick + Jam_Trans_Ticks + Jam_Prop_Ticks;
 // This is because if a computer is sending a jam signal, then once it arrives at other nodes, they stop transmitting packets.
 // At this point, only Jam signals will be on the line. Once the last Jam signal has fully arrived, the line has to be open. 
-func (lan *LAN) send_jam_signal(compID int64, Current_Tick int64) int64 {
+func (lan *LAN) Send_jam_signal(compID int64, Current_Tick int64) int64 {
 	Start := Current_Tick + lan.Prop_Ticks
 	End := Start + lan.Jam_Trans_Ticks
 

@@ -10,16 +10,16 @@ import (
 )
 
 const (
-	STATE_START = 0
-	STATE_MEDIUM_SENSING_INIT
-	STATE_MEDIUM_SENSING
-	STATE_STANDARD_WAIT
-	STATE_TRANSMIT_FRAME
-	STATE_JAMMING_SIGNAL
-	STATE_EXP_BACKOFF
-	STATE_EXP_WAIT
-	STATE_ERROR_SEND
-	STATE_SUCCESS_SEND
+	STATE_START               = 0
+	STATE_MEDIUM_SENSING_INIT = 1
+	STATE_MEDIUM_SENSING      = 2
+	STATE_STANDARD_WAIT       = 3
+	STATE_TRANSMIT_FRAME      = 4
+	STATE_JAMMING_SIGNAL      = 5
+	STATE_EXP_BACKOFF         = 6
+	STATE_EXP_WAIT            = 7
+	STATE_ERROR_SEND          = 8
+	STATE_SUCCESS_SEND        = 9
 )
 
 type StateMachine struct {
@@ -30,8 +30,8 @@ type CSMA struct {
 	id          int64
 	qm          stats.QueueMgr
 	logger      *log.Logger
-	nextTick    float64
-	curTick     float64
+	nextTick    int64
+	curTick     int64
 	lambda      float64
 	time_2_tick float64 //1 tick = X nanoseconds
 	lan         *lan.LAN
@@ -72,9 +72,9 @@ func (csma *CSMA) Tick(t int64) {
 	csma.curTick = t
 
 	//produce packets
-	if t >= nextTick {
-		if nextTick != -1 {
-			csma.producePacket(t)
+	if t >= csma.nextTick {
+		if csma.nextTick != -1 {
+			csma.producePacket()
 		}
 		csma.getExpRandNum()
 		csma.logger.Println("[ Comp", csma.id, "] Next Tick", csma.nextTick)
@@ -82,9 +82,9 @@ func (csma *CSMA) Tick(t int64) {
 
 	switch csma.state.state {
 	case STATE_START:
-		i = 0
+		csma.i = 0
 		if csma.qm.Size != 0 {
-			csma.packet = csma.qm.Pop()
+			csma.packet, _ = csma.qm.Pop()
 			csma.packet.ExitQueue = t
 			csma.state.state = STATE_MEDIUM_SENSING_INIT
 		}
@@ -94,12 +94,12 @@ func (csma *CSMA) Tick(t int64) {
 		fallthrough
 	case STATE_MEDIUM_SENSING:
 		//sense medium
-		if csma.lan.sense_line(csma.id) {
+		if csma.lan.Sense_line(csma.id) {
 			csma.waitFor = t + csma.tp
 			csma.state.state = STATE_STANDARD_WAIT
 		} else if csma.waitFor == t {
 			//ready to send file
-			csma.waitFor = t + csma.lan.put_packet(csma.packet, csma.id, t)
+			csma.waitFor = t + csma.lan.Put_packet(&csma.packet, csma.id, t)
 			csma.state.state = STATE_TRANSMIT_FRAME
 		}
 	case STATE_STANDARD_WAIT:
@@ -108,9 +108,9 @@ func (csma *CSMA) Tick(t int64) {
 		}
 	case STATE_TRANSMIT_FRAME:
 		//sense medium
-		if csma.lan.sense_line(csma.id) {
+		if csma.lan.Sense_line(csma.id) {
 			//collision
-			csma.waitFor = t + csma.lan.send_jam_signal(csma.id, t)
+			csma.waitFor = t + csma.lan.Send_jam_signal(csma.id, t)
 			csma.state.state = STATE_JAMMING_SIGNAL
 		} else if csma.waitFor == t {
 			//done waiting
@@ -136,14 +136,14 @@ func (csma *CSMA) Tick(t int64) {
 		csma.state.state = STATE_START
 	case STATE_SUCCESS_SEND:
 		//record successful packet
-		csma.lan.Record_lost_packet(csma.packet, t)
+		csma.lan.Record_lost_packet(&csma.packet, t)
 		csma.logger.Println(csma.id, "Failed to send packet", csma.kmax, "times")
 		csma.state.state = STATE_START
 	}
 }
 
 func (csma *CSMA) producePacket() {
-	var p = stats.Packet{csma.id, csma.curTick, 0}
+	var p = stats.Packet{csma.id, csma.curTick, 0, 0}
 	if err := csma.qm.Push(p); err != nil {
 		//logger.Printf("[Producer] Received Error %v\n", err)
 	}
@@ -162,11 +162,11 @@ func (csma *CSMA) getExpRandNum() {
 }
 
 //convert seconds into ticks
-func sec_to_tick(s float64, TICK_time int64) int64 {
-	return int64(math.ceil((s * 1e9) / float64(TICK_time)))
+func sec_to_tick(s float64, TICK_time float64) int64 {
+	return int64(math.Ceil((s * 1e9) / TICK_time))
 }
 
 //The exponential backoff wait time, when a collision is detected
 func (csma *CSMA) expBackOff() int64 {
-	return rand.Int31n(2**csma.i-1) * csma.tp
+	return int64(rand.Int31n(2^int32(csma.i)-1)) * csma.tp
 }
