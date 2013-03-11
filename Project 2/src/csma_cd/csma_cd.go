@@ -62,8 +62,6 @@ func (csma *CSMA) Init(id int64, lan *lan.LAN, logger *log.Logger, _lambda float
 	csma.state.state = STATE_START
 
 	logger.Println("[ CSMA /CD ] Started")
-
-	rand.Seed(time.Now().UnixNano())
 }
 
 //The main logic for the CSMA Computer

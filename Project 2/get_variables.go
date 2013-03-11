@@ -6,7 +6,9 @@ import (
 	"io"
 	"log"
 	"math"
+	"math/rand"
 	"os"
+	"time"
 )
 
 func get_variables() {
@@ -27,7 +29,7 @@ func get_variables() {
 
 	/**************************************************************************/
 	// Set Variables
-
+	rand.Seed(time.Now().UnixNano())
 	tp = bit_time_to_ticks(tp)
 	medium_sense_time = bit_time_to_ticks(medium_sense_time)
 
