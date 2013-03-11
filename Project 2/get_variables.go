@@ -69,7 +69,28 @@ func get_variables() {
 	fmt.Println("\t prop_d          ", Prop_ticks, "ticks")
 	fmt.Println("\t trans_d         ", Packet_trans_ticks, "ticks")
 	fmt.Println("\t jam_d           ", Jam_trans_ticks, "ticks")
+	fmt.Println("\t ---")
+	nextPacket := getExpRandNum()
+	fmt.Println("\t genPacket       ", nextPacket, "ticks / packet")
+	fmt.Println("\t maxGenPacket    ", (TICKS / nextPacket), "packets")
+	fmt.Println("\t ---")
+	fmt.Println("\t --- ---\n")
 	// End of Display Variables
+}
+
+func getExpRandNum() int64 {
+	a := 1 - rand.Float64()
+	b := math.Log(a)
+	c := (-1 / A)
+	d := b * c             // sec / packet
+	ans := sec_to_tickb(d) // tick / packet
+
+	return ans
+}
+
+//convert seconds into ticks
+func sec_to_tickb(s float64) int64 {
+	return int64(math.Ceil((s * 1e9) / TICK_time))
 }
 
 func get_args_params() {

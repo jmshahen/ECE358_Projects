@@ -54,7 +54,7 @@ var (
 	Avg_throughput               stats.Avg
 	Avg_throughput_per_Comp      []stats.Avg
 
-	csv_cols          int64 = 14
+	csv_cols          int64 = 16
 	csv_file_name_in  string
 	csv_file_name_out string
 )
@@ -175,6 +175,11 @@ func write_csv_header(max_comps int64) {
 		i++
 		headers[i] = "Avg_CSMA_Delay"
 		i++
+
+		headers[i] = "Total Successful Packets Sent"
+		i++
+		headers[i] = "Total Failed Packets Sent"
+		i++
 		headers[i] = "Throughtput"
 		i++
 
@@ -230,6 +235,11 @@ func write_csv_output(num_comps int64) {
 	rec[i] = strconv.FormatFloat(Avg_Avg_Queue_Delay.GetAvg(), 'f', -1, 64)
 	i++
 	rec[i] = strconv.FormatFloat(Avg_Avg_CSMA_Delay.GetAvg(), 'f', -1, 64)
+	i++
+
+	rec[i] = strconv.FormatFloat(float64(bucket.Packets.Size), 'f', -1, 64)
+	i++
+	rec[i] = strconv.FormatFloat(float64(lost_bucket.Packets.Size), 'f', -1, 64)
 	i++
 	rec[i] = strconv.FormatFloat(Avg_throughput.GetAvg(), 'f', -1, 64)
 	i++
