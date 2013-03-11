@@ -1,7 +1,6 @@
 package lan
 
 import (
-	"fmt"
 	"stats"
 )
 
@@ -111,8 +110,6 @@ func (lan *LAN) Sense_line(compID int64) bool {
 func (lan *LAN) Put_packet(p *stats.Packet, compID int64, Current_Tick int64) int64 {
 	Start := Current_Tick + lan.Prop_Ticks
 	End := Start + lan.Packet_Trans_Ticks
-
-	fmt.Printf("p = %+v", p)
 
 	var i int64
 	for i = 0; i < lan.num_comps; i++ {
