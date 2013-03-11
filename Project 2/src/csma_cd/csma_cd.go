@@ -184,5 +184,11 @@ func sec_to_tick(s float64, TICK_time float64) int64 {
 
 //The exponential backoff wait time, when a collision is detected
 func (csma *CSMA) expBackOff() int64 {
-	return int64(rand.Int31n(2^int32(csma.i)-1)) * csma.tp
+	a := int64(math.Pow(2.0, float64(csma.i)) - 1)
+	if a <= 0 {
+		a = 1
+		csma.logger.Printf("SHIT!!!! How Did this Happen? csma.i =", csma.i)
+	}
+	b := rand.Int63n(a)
+	return b * csma.tp
 }
