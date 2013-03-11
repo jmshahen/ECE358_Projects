@@ -75,7 +75,7 @@ func (b *Bucket) Accept_packet(p *Packet) {
 
 	b.Packets.Push(*p)
 
-	b.logger.Println("[ Bucket ] Accepted Packet")
+	//b.logger.Println("[ Bucket ] Accepted Packet")
 }
 
 // Helper functions

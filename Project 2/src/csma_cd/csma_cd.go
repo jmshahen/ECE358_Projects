@@ -77,14 +77,14 @@ func (csma *CSMA) Tick(t int64) {
 			csma.producePacket()
 		}
 		csma.getExpRandNum()
-		csma.logger.Println("[ Comp", csma.id, "] Next Tick", csma.nextTick)
+		//csma.logger.Println("[ Comp", csma.id, "] Next Tick", csma.nextTick)
 	}
 
 	switch csma.state.state {
 	case STATE_START:
 		csma.i = 0
 		if csma.qm.Size != 0 {
-			csma.logger.Println("[ Comp", csma.id, "] STATE_START: Packet Readying")
+			//csma.logger.Println("[ Comp", csma.id, "] STATE_START: Packet Readying")
 			csma.packet, _ = csma.qm.Pop()
 			csma.packet.ExitQueue = t
 			csma.state.state = STATE_MEDIUM_SENSING_INIT
@@ -96,12 +96,12 @@ func (csma *CSMA) Tick(t int64) {
 	case STATE_MEDIUM_SENSING:
 		//sense medium
 		if csma.lan.Sense_line(csma.id) {
-			csma.logger.Println("[ Comp", csma.id, "] STATE_MEDIUM_SENSING: LAN Busy")
+			//csma.logger.Println("[ Comp", csma.id, "] STATE_MEDIUM_SENSING: LAN Busy")
 			csma.waitFor = t + csma.tp
 			csma.state.state = STATE_STANDARD_WAIT
 		} else if csma.waitFor == t {
 			//ready to send file
-			csma.logger.Println("[ Comp", csma.id, "] STATE_MEDIUM_SENSING: Sending Packet")
+			//csma.logger.Println("[ Comp", csma.id, "] STATE_MEDIUM_SENSING: Sending Packet")
 			csma.waitFor = t + csma.lan.Put_packet(&csma.packet, csma.id, t)
 			csma.state.state = STATE_TRANSMIT_FRAME
 		}
@@ -112,7 +112,7 @@ func (csma *CSMA) Tick(t int64) {
 	case STATE_TRANSMIT_FRAME:
 		//sense medium
 		if csma.lan.Sense_line(csma.id) {
-			csma.logger.Println("[ Comp", csma.id, "] STATE_TRANSMIT_FRAME: Collision Detected")
+			//csma.logger.Println("[ Comp", csma.id, "] STATE_TRANSMIT_FRAME: Collision Detected")
 			csma.waitFor = t + csma.lan.Send_jam_signal(csma.id, t)
 			csma.state.state = STATE_JAMMING_SIGNAL
 		} else if csma.waitFor == t {
@@ -135,7 +135,7 @@ func (csma *CSMA) Tick(t int64) {
 		}
 	case STATE_SUCCESS_SEND:
 		//record successful packet
-		csma.logger.Println(csma.id, "Correctly Sent a Packet")
+		//csma.logger.Println(csma.id, "Correctly Sent a Packet")
 		csma.state.state = STATE_START
 	case STATE_ERROR_SEND:
 		//record failed packet
