@@ -29,6 +29,7 @@ type Bucket struct {
 }
 
 func (b *Bucket) Init(l *log.Logger, packet_len int64, num_comps int64) {
+	N := num_comps
 	b.logger = l
 	b.logger.Println("[Stats] Started")
 
@@ -59,16 +60,16 @@ func (b *Bucket) Accept_packet(p *Packet) {
 	id := p.CompID
 
 	var delay float64 = float64(p.Finished - p.Generated)
-	Avg_Full_Delay.AddAvg(delay)
-	Avg_Full_Delay_per_Comp[id].AddAvg(delay)
+	b.Avg_Full_Delay.AddAvg(delay)
+	b.Avg_Full_Delay_per_Comp[id].AddAvg(delay)
 
 	delay = float64(p.ExitQueue - p.Generated)
-	Avg_Queue_Delay.AddAvg(delay)
-	Avg_Queue_Delay_per_Comp[id].AddAvg(delay)
+	b.Avg_Queue_Delay.AddAvg(delay)
+	b.Avg_Queue_Delay_per_Comp[id].AddAvg(delay)
 
 	delay = float64(p.Finished - p.ExitQueue)
-	Avg_CSMA_Delay.AddAvg(delay)
-	Avg_CSMA_Delay_per_Comp[id].AddAvg(delay)
+	b.Avg_CSMA_Delay.AddAvg(delay)
+	b.Avg_CSMA_Delay_per_Comp[id].AddAvg(delay)
 
 	b.packets_per_Comp[id]++
 }
@@ -110,5 +111,5 @@ func (p *Pro) Clear() {
 }
 
 func (p Packet) SojournTime() float64 {
-	return p.Finished - p.Generated
+	return float64(p.Finished - p.Generated)
 }
