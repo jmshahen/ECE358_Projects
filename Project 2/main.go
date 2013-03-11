@@ -1,9 +1,9 @@
 package main
 
 import (
+	"lan"
 	"csma_cd"
 	"fmt"
-	"lan"
 	"log"
 	"stats"
 )
@@ -109,6 +109,7 @@ func main() {
 			// end compute stats
 		}
 		write_csv_output(i)
+		computers.clear()
 
 
 	}
