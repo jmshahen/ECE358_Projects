@@ -50,7 +50,7 @@ var (
 	Avg_Avg_CSMA_Delay           stats.Avg
 	Avg_Avg_CSMA_Delay_per_Comp  []stats.Avg
 	Avg_throughput               stats.Avg
-	Avg_throughput_per_comp      []stats.Avg
+	Avg_throughput_per_Comp      []stats.Avg
 
 	csv_cols int64 = 11
 )
@@ -107,7 +107,7 @@ func main() {
 				Avg_Avg_Full_Delay_per_Comp[a].AddAvg(bucket.Avg_Full_Delay_per_Comp[a].GetAvg())
 				Avg_Avg_Queue_Delay_per_Comp[a].AddAvg(bucket.Avg_Queue_Delay_per_Comp[a].GetAvg())
 				Avg_Avg_CSMA_Delay_per_Comp[a].AddAvg(bucket.Avg_CSMA_Delay_per_Comp[a].GetAvg())
-				Avg_throughput_per_comp[a].AddAvg(bucket.Throughput_per_comp(int64(a), TICKS))
+				Avg_throughput_per_Comp[a].AddAvg(bucket.Throughput_per_comp(int64(a), TICKS))
 			}
 			// end compute stats
 
@@ -125,6 +125,11 @@ func main() {
 }
 
 func init_computers(N int64) {
+
+	Avg_Avg_Full_Delay_per_Comp = make([]stats.Avg, N, N)
+	Avg_Avg_Queue_Delay_per_Comp = make([]stats.Avg, N, N)
+	Avg_Avg_CSMA_Delay_per_Comp = make([]stats.Avg, N, N)
+	Avg_throughput_per_Comp = make([]stats.Avg, N, N)
 
 	computers = make([]csma_cd.CSMA, N, N)
 
@@ -167,10 +172,11 @@ func write_csv_header(max_comps int64) {
 
 		var d = i
 		for c := int64(0); c < max_comps; c, d = c+1, d+4 {
-			headers[d] = "Avg_Full_Delay(" + strconv.FormatInt(c, 10) + ")"
-			headers[d+1] = "Avg_Queue_Delay(" + strconv.FormatInt(c, 10) + ")"
-			headers[d+2] = "Avg_CSMA_Delay(" + strconv.FormatInt(c, 10) + ")"
-			headers[d+3] = "Throughtput(" + strconv.FormatInt(c, 10) + ")"
+			s := strconv.FormatInt(c, 10)
+			headers[d+0] = "Avg_Full_Delay (" + s + ")"
+			headers[d+1] = "Avg_Queue_Delay (" + s + ")"
+			headers[d+2] = "Avg_CSMA_Delay (" + s + ")"
+			headers[d+3] = "Throughtput (" + s + ")"
 		}
 
 		writter.Write(headers)
@@ -222,15 +228,15 @@ func write_csv_output(num_comps int64) {
 
 	var d = i
 	for c := int64(0); c < num_comps; c, d = c+1, d+4 {
-		rec[d] = strconv.FormatFloat(Avg_Avg_Full_Delay_per_Comp[c].GetAvg(), 'f', -1, 64)
+		rec[d+0] = strconv.FormatFloat(Avg_Avg_Full_Delay_per_Comp[c].GetAvg(), 'f', -1, 64)
 		rec[d+1] = strconv.FormatFloat(Avg_Avg_Queue_Delay_per_Comp[c].GetAvg(), 'f', -1, 64)
 		rec[d+2] = strconv.FormatFloat(Avg_Avg_CSMA_Delay_per_Comp[c].GetAvg(), 'f', -1, 64)
-		rec[d+3] = strconv.FormatFloat(Avg_throughput_per_comp[c].GetAvg(), 'f', -1, 64)
+		rec[d+3] = strconv.FormatFloat(Avg_throughput_per_Comp[c].GetAvg(), 'f', -1, 64)
 
 		Avg_Avg_Full_Delay_per_Comp[c].Clear()
 		Avg_Avg_Queue_Delay_per_Comp[c].Clear()
 		Avg_Avg_CSMA_Delay_per_Comp[c].Clear()
-		Avg_throughput_per_comp[c].Clear()
+		Avg_throughput_per_Comp[c].Clear()
 	}
 
 	writter.Write(rec)
