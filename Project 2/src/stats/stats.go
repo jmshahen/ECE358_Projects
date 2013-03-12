@@ -31,7 +31,7 @@ type Bucket struct {
 func (b *Bucket) Init(l *log.Logger, packet_len int64, num_comps int64) {
 	N := num_comps
 	b.logger = l
-	b.logger.Println("[Stats] Started")
+	//b.logger.Println("[Stats] Started")
 
 	b.Avg_Full_Delay.Clear()
 	b.Avg_Full_Delay_per_Comp = make([]Avg, N, N)

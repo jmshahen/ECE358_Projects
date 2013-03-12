@@ -69,7 +69,7 @@ func (csma *CSMA) Init(id int64, lan *lan.LAN, logger *log.Logger, _lambda float
 	csma.Waiting_to_send = 0
 	csma.Recovering_from_collision = 0
 
-	logger.Println("[ CSMA /CD ] Started")
+	//logger.Println("[ CSMA /CD ] Started")
 }
 
 //The main logic for the CSMA Computer
