@@ -79,6 +79,7 @@ func main() {
 
 		// run M times for each i value.
 		for m := int64(1); m <= M; m++ {
+			logger.Println("N =", i, "to", N_end, " - M =", m, "to", M)
 			test_t = time.Now()
 			// initilize components
 			bucket.Init(logger, L, i)

@@ -1,2 +1,2 @@
 M,TICKS,Tick time,N Start,N End,N Step,A,W,L,K Max,Tp (bit Times),Medium Sense (bit times),Jamming Signal (bits),length_of_line,speed_over_line
-5,100e6,10,50,400,50,300,1.00e8,1500,10,512,96,48,100,2.00e8
+5,100e6,10,500,800,100,300,1.00e8,1500,10,512,96,48,100,2.00e8
