@@ -51,6 +51,7 @@ func (lan *LAN) Init(N int64, prop_t int64, pack_t int64, jam_t int64, b *stats.
 // If it is between them, sense_flags for that node becomes true.
 // If t = the End time, then the packet has just fully arrived and sense_flags = false. THe packet_arrival struct is also cleared.
 func (lan *LAN) Complete_Tick(t int64) {
+	var packet_received bool
 	var i int64
 	for i = 0; i < lan.num_comps; i++ {
 		// Packet is currently arriving at this node
@@ -63,7 +64,12 @@ func (lan *LAN) Complete_Tick(t int64) {
 			lan.sense_flags[i] = false
 			lan.node_info[i].Start = 0
 			lan.node_info[i].End = 0
-			lan.push_to_bucket(lan.node_info[i].p, t)
+
+			if packet_received == false {
+				lan.push_to_bucket(lan.node_info[i].p, t)
+				packet_received = true
+			}
+			
 		}
 	}
 }
