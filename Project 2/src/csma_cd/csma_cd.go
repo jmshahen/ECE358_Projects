@@ -34,10 +34,10 @@ type CSMA struct {
 	lambda      float64
 	time_2_tick float64 //1 tick = X nanoseconds
 	lan         *lan.LAN
+	state       StateMachine
+	waitFor     int64
+	i           int64
 
-	state             StateMachine
-	waitFor           int64
-	i                 int64
 	kmax              int64
 	packet            stats.Packet
 	tp                int64
@@ -47,6 +47,7 @@ type CSMA struct {
 	Waiting_for_packet        int64 //in ticks
 	Waiting_to_send           int64 //in ticks
 	Recovering_from_collision int64 //in ticks
+	Max_i_reached             int64
 }
 
 //Variables that are set by calling func at Init:
@@ -64,6 +65,8 @@ func (csma *CSMA) Init(id int64, lan *lan.LAN, logger *log.Logger, _lambda float
 	csma.qm.Clear()
 	csma.nextTick = -1
 	csma.state.state = STATE_START
+
+	csma.Max_i_reached = 0
 
 	csma.Waiting_for_packet = 0
 	csma.Waiting_to_send = 0
@@ -133,6 +136,12 @@ func (csma *CSMA) Tick(t int64) {
 		csma.Recovering_from_collision++
 		if csma.waitFor == t {
 			csma.i++
+			if csma.i > csma.Max_i_reached {
+				csma.Max_i_reached = csma.i
+				if csma.i > 1 {
+					csma.logger.Println("!", csma.i)
+				}
+			}
 			if csma.i > csma.kmax {
 				csma.state.state = STATE_ERROR_SEND
 			} else {

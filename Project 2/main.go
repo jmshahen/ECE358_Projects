@@ -53,8 +53,9 @@ var (
 	Avg_Avg_CSMA_Delay_per_Comp  []stats.Avg
 	Avg_throughput               stats.Avg
 	Avg_throughput_per_Comp      []stats.Avg
+	Avg_max_i_per_Comp           stats.Avg
 
-	csv_cols          int64 = 16
+	csv_cols          int64 = 17
 	csv_file_name_in  string
 	csv_file_name_out string
 )
@@ -117,6 +118,8 @@ func main() {
 				Avg_Avg_Waiting_for_packet.AddAvg(float64(computers[a].Waiting_for_packet))
 				Avg_Avg_Waiting_to_send.AddAvg(float64(computers[a].Waiting_to_send))
 				Avg_Avg_Recovering_from_collision.AddAvg(float64(computers[a].Recovering_from_collision))
+
+				Avg_max_i_per_Comp.AddAvg(float64(computers[a].Max_i_reached))
 			}
 			// end compute stats
 
@@ -181,6 +184,8 @@ func write_csv_header(max_comps int64) {
 		i++
 		headers[i] = "Total Failed Packets Sent"
 		i++
+		headers[i] = "Max_i_reached"
+		i++
 		headers[i] = "Throughtput"
 		i++
 
@@ -242,6 +247,8 @@ func write_csv_output(num_comps int64) {
 	i++
 	rec[i] = strconv.FormatFloat(float64(lost_bucket.Packets.Size), 'f', -1, 64)
 	i++
+	rec[i] = strconv.FormatFloat(float64(Avg_max_i_per_Comp.GetAvg()), 'f', -1, 64)
+	i++
 	rec[i] = strconv.FormatFloat(Avg_throughput.GetAvg(), 'f', -1, 64)
 	i++
 
@@ -261,6 +268,8 @@ func write_csv_output(num_comps int64) {
 	Avg_Avg_Waiting_for_packet.Clear()
 	Avg_Avg_Waiting_to_send.Clear()
 	Avg_Avg_Recovering_from_collision.Clear()
+
+	Avg_max_i_per_Comp.Clear()
 
 	var d = i
 	for c := int64(0); c < num_comps; c, d = c+1, d+4 {
